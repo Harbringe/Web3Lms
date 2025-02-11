@@ -3,6 +3,15 @@ from api import serializer as api_serializer
 
 # Create your views here.
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import generics
+
+from userauths.models import User, Profile
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = api_serializer.MyTokenObtainPairSerializer
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = api_serializer.RegisterSerializer
