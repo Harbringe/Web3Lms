@@ -1,0 +1,7 @@
+[run]
+source=api/,backend/,core/,userauths/,
+omit=
+    web3lms
+    */migrations/*
+    */tests/*
+    */__init__.py
