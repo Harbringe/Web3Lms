@@ -88,8 +88,6 @@ sympy==1.13.1
 tablib==3.8.0
 typing_extensions==4.12.2
 tzdata==2023.3
-ultralytics==8.3.75
-ultralytics-thop==2.0.14
 uritemplate==4.1.1
 urllib3==1.26.18
 yarl==1.18.0
