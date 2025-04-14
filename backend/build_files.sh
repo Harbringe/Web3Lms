@@ -1,11 +1,11 @@
 echo "Building backend..."
 echo "Installing dependencies..."
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 echo "Making migrations..."
-python manage.py makemigrations
+python3 manage.py makemigrations
 echo "Migrating database..."
-python manage.py migrate
+python3 manage.py migrate
 echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear
+python3 manage.py collectstatic --noinput --clear
 echo "Build completed."
 echo "Starting backend server..."
