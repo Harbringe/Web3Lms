@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from pathlib import Path
 import os
+import dj_database_url
 from datetime import timedelta
 from environs import Env
 env = Env()
@@ -94,17 +95,23 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': env("ENGINE"),
-        'NAME': env("NAME"),
-        'USER': env("USER"),
-        'PASSWORD': env("PASSWORD"),
-        'HOST': env("HOST"),
-        'PORT': env("PORT"),
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': env("ENGINE"),
+#         'NAME': env("NAME"),
+#         'USER': env("USER"),
+#         'PASSWORD': env("PASSWORD"),
+#         'HOST': env("HOST"),
+#         'PORT': env("PORT"),
+#     }
+# }
 
+DATABASES = {
+    'default': dj_database_url.parse(
+        env("DB_CONN_URL"),
+        conn_max_age=600
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
