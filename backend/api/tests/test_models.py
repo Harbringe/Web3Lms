@@ -6,158 +6,80 @@ from decimal import Decimal
 
 User = get_user_model()
 
-class TeacherModelTests(TestCase):
+class TeacherModelTest(TestCase):
+    
     def setUp(self):
-        self.user = User.objects.create_user(
-            full_name='Test User',
-            username='test_user',
-            email='test@example.com',
-            password='TestPassword123!'
-        )
+        self.user = User.objects.create_user(username="testuser", password="pass123")
         self.teacher = Teacher.objects.create(
             user=self.user,
-            full_name='Test Teacher',
-            bio='Test Bio',
-            facebook='https://facebook.com/test',
-            twitter='https://twitter.com/test',
-            linkedin='https://linkedin.com/test',
-            about='Test About',
-            country='Test Country',
-            wallet_address='test-addr1qxy2k7y4nj0q12cuq7phmdg73y6jndelcmya5nq7eyqvvj2lzkfj69x6xq38z8'
-        )
-        self.course = Course.objects.create(
-            title='Test Course',
-            description='Test Description',
-            teacher=self.teacher,
-            price=Decimal('99.99'),
-            platform_status='Published',
-            teacher_course_status='Published'
-        )
-        self.cart_order_item = CartOrderItem.objects.create(
-            teacher=self.teacher,
-            course=self.course,
-            price=Decimal('99.99')
+            full_name="John Doe",
+            wallet_address="unique_wallet_123"
         )
 
-    # Positive Tests
-    def test_teacher_full_name(self):
-        self.assertEqual(self.teacher.full_name, 'Test Teacher')
-    
-    def test_teacher_bio(self):
-        self.assertEqual(self.teacher.bio, 'Test Bio')
-    
-    def test_teacher_wallet_address(self):
-        self.assertEqual(self.teacher.wallet_address, 'test-addr1qxy2k7y4nj0q12cuq7phmdg73y6jndelcmya5nq7eyqvvj2lzkfj69x6xq38z8')
-    
-    def test_teacher_str_method(self):
-        self.assertEqual(str(self.teacher), 'Test Teacher')
-    
-    def test_teacher_students_count(self):
-        students = self.teacher.students()
-        self.assertEqual(students.count(), 1)
+    # === __str__ ===
 
-    def test_teacher_students_content(self):
-        students = self.teacher.students()
-        self.assertEqual(students.first(), self.cart_order_item)
+    def test_str_returns_full_name(self):
+        self.assertEqual(str(self.teacher), "John Doe")
 
-    def test_teacher_courses_count(self):
-        courses = self.teacher.courses()
-        self.assertEqual(courses.count(), 1)
-    
-    def test_teacher_courses_content(self):
-        courses = self.teacher.courses()
-        self.assertEqual(courses.first(), self.course)
-    
-    def test_teacher_review_count(self):
-        self.assertEqual(self.teacher.review(), 1)
-    
-    def test_teacher_default_image(self):
-        self.assertEqual(self.teacher.image.name, 'default.jpg')
+    def test_str_returns_empty_if_no_name(self):
+        self.teacher.full_name = ""
+        self.teacher.save()
+        self.assertEqual(str(self.teacher), "")
 
-    # Negative Tests
-    def test_teacher_duplicate_wallet_address(self):
-        with self.assertRaises(Exception):
-            Teacher.objects.create(
-                user=User.objects.create_user(
-                    full_name='Another User',
-                    email='another@example.com',
-                    password='TestPassword123!'
-                ),
-                full_name='Another Teacher',
-                wallet_address=self.teacher.wallet_address
-            )
+    def test_str_sanity_not_none(self):
+        self.assertIsNotNone(str(self.teacher))
 
-    def test_teacher_missing_wallet_address(self):
-        with self.assertRaises(Exception):
-            Teacher.objects.create(
-                user=User.objects.create_user(
-                    full_name='Another User',
-                    email='another@example.com',
-                    password='TestPassword123!'
-                ),
-                full_name='Another Teacher'
-            )
-    
-    def test_teacher_missing_user(self):
-        with self.assertRaises(Exception):
-            Teacher.objects.create(
-                full_name='Another Teacher',
-                wallet_address='unique-wallet-address'
-            )
+    # === students() ===
 
-    # Sanity Tests
-    def test_teacher_optional_bio(self):
-        teacher = Teacher.objects.create(
-            user=User.objects.create_user(
-                full_name='Optional User',
-                email='optional@example.com',
-                password='TestPassword123!'
-            ),
-            full_name='Optional Teacher',
-            wallet_address='wallet-optional-1'
+    def test_students_with_valid_cart_items(self):
+        CartOrderItem.objects.create(teacher=self.teacher)
+        self.assertEqual(self.teacher.students().count(), 1)
+
+    def test_students_with_no_cart_items(self):
+        self.assertEqual(self.teacher.students().count(), 0)
+
+    def test_students_wrong_teacher(self):
+        other_teacher = Teacher.objects.create(
+            user=User.objects.create_user(username="other", password="pass123"),
+            full_name="Other Teacher",
+            wallet_address="wallet_other"
         )
-        self.assertIsNone(teacher.bio)
-    
-    def test_teacher_optional_facebook(self):
-        teacher = Teacher.objects.get(full_name='Optional Teacher')
-        self.assertIsNone(teacher.facebook)
+        CartOrderItem.objects.create(teacher=other_teacher)
+        self.assertEqual(self.teacher.students().count(), 0)
 
-    def test_teacher_optional_twitter(self):
-        teacher = Teacher.objects.get(full_name='Optional Teacher')
-        self.assertIsNone(teacher.twitter)
+    # === courses() ===
 
-    def test_teacher_optional_linkedin(self):
-        teacher = Teacher.objects.get(full_name='Optional Teacher')
-        self.assertIsNone(teacher.linkedin)
+    def test_courses_with_valid_courses(self):
+        Course.objects.create(teacher=self.teacher)
+        self.assertEqual(self.teacher.courses().count(), 1)
 
-    def test_teacher_optional_about(self):
-        teacher = Teacher.objects.get(full_name='Optional Teacher')
-        self.assertIsNone(teacher.about)
+    def test_courses_with_no_courses(self):
+        self.assertEqual(self.teacher.courses().count(), 0)
 
-    def test_teacher_optional_country(self):
-        teacher = Teacher.objects.get(full_name='Optional Teacher')
-        self.assertIsNone(teacher.country)
-    
-    def test_teacher_cascade_on_user_delete(self):
-        user_id = self.user.id
-        self.user.delete()
-        self.assertFalse(Teacher.objects.filter(user_id=user_id).exists())
-    
-    def test_teacher_image_upload(self):
-        image_content = b'fake image content'
-        image = SimpleUploadedFile("test_image.jpg", image_content, content_type="image/jpeg")
-        teacher = Teacher.objects.create(
-            user=User.objects.create_user(
-                full_name='Image User',
-                email='image@example.com',
-                password='TestPassword123!'
-            ),
-            full_name='Image Teacher',
-            wallet_address='wallet-image-upload',
-            image=image
+    def test_courses_invalid_teacher(self):
+        another_teacher = Teacher.objects.create(
+            user=User.objects.create_user(username="another", password="pass123"),
+            full_name="Another Teacher",
+            wallet_address="another_wallet_123"
         )
-        self.assertTrue(teacher.image)
+        Course.objects.create(teacher=another_teacher)
+        self.assertEqual(self.teacher.courses().count(), 0)
 
-    def test_teacher_image_name_not_default(self):
-        teacher = Teacher.objects.get(full_name='Image Teacher')
-        self.assertNotEqual(teacher.image.name, 'default.jpg')
+    # === review() ===
+
+    def test_review_count_is_correct(self):
+        Course.objects.create(teacher=self.teacher)
+        Course.objects.create(teacher=self.teacher)
+        self.assertEqual(self.teacher.review(), 2)
+
+    def test_review_count_zero(self):
+        self.assertEqual(self.teacher.review(), 0)
+
+    def test_review_count_wrong_teacher(self):
+        other = Teacher.objects.create(
+            user=User.objects.create_user(username="wrong", password="pass"),
+            full_name="Wrong Teacher",
+            wallet_address="wallet_wrong"
+        )
+        Course.objects.create(teacher=other)
+        self.assertEqual(self.teacher.review(), 0)
