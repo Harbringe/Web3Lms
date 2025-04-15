@@ -1,0 +1,57 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+web3lms/
+
+# Environment variables
+.env
+.env.*
+
+# Node dependencies (if using frontend)
+node_modules/
+
+# Build and cache
+*.log
+*.sqlite3
+*.db
+*.bak
+*.pid
+*.gz
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.swp
+.idea/
+.vscode/
+.cache/
+dist/
+build/
+.mypy_cache/
+coverage/
+htmlcov/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Tests
+tests/
+test_*.py
+*.test.py
+coverage.xml
+pytest.ini
+
+# Django-specific
+db.sqlite3
+manage.py
+
+
