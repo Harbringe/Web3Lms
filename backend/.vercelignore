@@ -50,8 +50,6 @@ test_*.py
 coverage.xml
 pytest.ini
 
-# Django-specific
-db.sqlite3
-manage.py
+
 
 
