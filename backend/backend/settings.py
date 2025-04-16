@@ -302,3 +302,5 @@ CORS_ALLOW_CREDENTIALS = True
 #     'web3lms.onrender.com',
 #     'onrender.com'
 # )
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
