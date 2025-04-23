@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from api import serializer as api_serializer
 from api import models as api_models
 from userauths.models import User, Profile
+from api.models import LEVEL, LANGUAGE
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, status, viewsets
@@ -957,33 +958,80 @@ class TeacherNotificationDetailAPIView(generics.RetrieveUpdateAPIView):
 
 class CourseCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser,)
 
     def post(self, request):
-        title = request.data.get("title")
-        description = request.data.get("description")
-        image = request.data.get("image")
-        file = request.data.get("file")
-        level = request.data.get("level")
-        language = request.data.get("language")
-        price = request.data.get("price")
-        category = request.data.get("category")
+        try:
+            # Get required fields
+            title = request.data.get("title")
+            description = request.data.get("description")
+            price = request.data.get("price")
+            category_id = request.data.get("category")
 
-        category_obj = api_models.Category.objects.filter(id=category).first()
-        teacher = api_models.Teacher.objects.get(user=request.user)
+            # Validate required fields
+            if not all([title, description, price, category_id]):
+                return Response(
+                    {"error": "Missing required fields: title, description, price, category"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        course = api_models.Course.objects.create(
-            teacher=teacher,
-            category=category_obj,
-            file=file,
-            image=image,
-            title=title,
-            description=description,
-            price=price,
-            language=language,
-            level=level
-        )
+            # Get optional fields
+            image = request.data.get("image")
+            file = request.data.get("file")
+            level = request.data.get("level", "Beginner")
+            language = request.data.get("language", "English")
 
-        return Response({"message": "Course Created", "course_id": course.course_id}, status=status.HTTP_201_CREATED)
+            # Validate category exists
+            try:
+                category = api_models.Category.objects.get(id=category_id)
+            except api_models.Category.DoesNotExist:
+                return Response(
+                    {"error": "Category not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Get or create teacher profile
+            try:
+                teacher = api_models.Teacher.objects.get(user=request.user)
+            except api_models.Teacher.DoesNotExist:
+                return Response(
+                    {"error": "Teacher profile not found. Please complete your teacher profile first."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Create course
+            course = api_models.Course.objects.create(
+                teacher=teacher,
+                category=category,
+                title=title,
+                description=description,
+                price=price,
+                language=language,
+                level=level,
+                image=image,
+                file=file,
+                platform_status="Draft",  # Start as draft
+                teacher_course_status="Draft"
+            )
+
+            # Create notification
+            api_models.Notification.objects.create(
+                teacher=teacher,
+                type="Draft"
+            )
+
+            return Response({
+                "message": "Course created successfully",
+                "course_id": course.course_id,
+                "status": "Draft",
+                "slug": course.slug
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred while creating the course: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class CourseUpdateAPIView(generics.RetrieveUpdateAPIView):

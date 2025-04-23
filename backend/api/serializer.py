@@ -25,10 +25,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
+    wallet_address = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ['full_name', 'email', 'password', 'password2']
+        fields = ['full_name', 'email', 'password', 'password2', 'wallet_address']
 
     def validate(self, attr):
         if attr['password'] != attr['password2']:
@@ -40,6 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create(
             full_name=validated_data['full_name'],
             email=validated_data['email'],
+            wallet_address=validated_data['wallet_address']
         )
 
         email_username, _ = user.email.split("@")

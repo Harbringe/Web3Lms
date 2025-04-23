@@ -69,7 +69,7 @@ class Teacher(models.Model):
     linkedin = models.URLField(null=True, blank=True)
     about = models.TextField(null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
-    wallet_address = models.CharField(max_length=1000, unique=True, blank=True, null=False)
+    wallet_address = models.CharField(max_length=1000, unique=True, blank=True)
 
     def __str__(self):
         return self.full_name
@@ -82,6 +82,11 @@ class Teacher(models.Model):
     
     def review(self):
         return Course.objects.filter(teacher=self).count()
+    
+    def save(self, *args, **kwargs):
+        if not self.wallet_address:
+            self.wallet_address = self.user.wallet_address
+        super().save(*args, **kwargs)
     
 class Category(models.Model):
     title = models.CharField(max_length=100)
@@ -106,10 +111,10 @@ class Category(models.Model):
             
 class Course(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, blank=True, null=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
     file = models.FileField(upload_to="course-file", blank=True, null=True, default="default.jpg")
     image = models.FileField(upload_to="course-file", blank=True, null=True, default="default.jpg")
-    title = models.CharField(max_length=200, blank=True, null=True)
+    title = models.CharField(max_length=200, null=True)
     description = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, blank=True, null=True)
     language = models.CharField(choices=LANGUAGE, default="English", max_length=100, blank=True, null=True)
@@ -121,21 +126,26 @@ class Course(models.Model):
     slug = models.SlugField(unique=True, null=True, blank=True)
     date = models.DateTimeField(default=timezone.now)
     nft_id = models.CharField(unique=True, blank=True, null=False, max_length=1000)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-date']
+        verbose_name = "Course"
+        verbose_name_plural = "Courses"
     
     def __str__(self):
         return self.title
     
     def save(self, *args, **kwargs):
         if self.slug == "" or self.slug == None:
-            self.slug = slugify(self.title) + str(self.pk)
+            self.slug = slugify(self.title) + " _ " + str(self.course_id)
             
-        # Set NFT ID if it's not already set
-        if not self.nft_id:
+        if not self.nft_id and self.teacher:
             self.set_nft_id()
             
         super(Course, self).save(*args, **kwargs)
 
-    def students(self):
+    def students(self):        
         return EnrolledCourse.objects.filter(course=self)
     
     def curriculum(self):
@@ -146,7 +156,7 @@ class Course(models.Model):
     
     def average_rating(self):
         average_rating = Review.objects.filter(course=self, active=True).aggregate(avg_rating=models.Avg('rating'))
-        return average_rating['avg_rating']
+        return average_rating['avg_rating'] 
     
     def rating_count(self):
         return Review.objects.filter(course=self, active=True).count()
@@ -155,11 +165,25 @@ class Course(models.Model):
         return Review.objects.filter(course=self, active=True)
     
     def set_nft_id(self):
-        # Concatenate wallet address and course_id to create unique NFT ID
-        self.nft_id = f"{self.teacher.wallet_address}_{self.course_id}"
-        self.save()
+        self.nft_id = f"{self.teacher.wallet_address}_{self.slug}"
     
-
+    def is_published(self):
+        return self.platform_status == "Published" and self.teacher_course_status == "Published"
+    
+    def get_total_duration(self):
+        total_seconds = 0
+        for variant in self.curriculum():
+            for item in variant.variant_items.all():
+                if item.duration:
+                    total_seconds += item.duration.total_seconds()
+        
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        return f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+    
+    def get_total_lectures(self):
+        return self.lectures().count()
+    
 class Variant(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     title = models.CharField(max_length=1000)
