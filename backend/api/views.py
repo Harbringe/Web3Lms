@@ -412,7 +412,7 @@ class RazorpayCheckoutAPIView(generics.CreateAPIView):
         try:
             # Create Razorpay Order
             razorpay_order = razorpay_client.order.create({
-                'amount': int(order.total * 100),  # Amount in paise
+                'amount': int(order.total), 
                 'currency': 'INR',
                 'receipt': order.oid,
                 'payment_capture': '1'
@@ -424,7 +424,7 @@ class RazorpayCheckoutAPIView(generics.CreateAPIView):
             # Prepare checkout data for frontend
             checkout_data = {
                 'key': settings.RAZORPAY_KEY_ID,
-                'amount': int(order.total * 100),
+                'amount': int(order.total),
                 'currency': 'INR',
                 'name': 'Web3Lms',
                 'description': f'Payment for order {order.oid}',
