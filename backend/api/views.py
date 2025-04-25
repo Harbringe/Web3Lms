@@ -25,7 +25,7 @@ from rest_framework.decorators import api_view, APIView
 
 import random
 from decimal import Decimal
-import stripe
+# import stripe
 import requests
 from datetime import datetime, timedelta
 from distutils.util import strtobool
