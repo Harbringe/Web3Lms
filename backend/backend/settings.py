@@ -291,8 +291,8 @@ RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET')
 
 
 # Add these settings
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app/', env("FRONTEND_SITE_URL")]
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app/', env("FRONTEND_SITE_URL")]    
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL")]
+CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL")]    
 CORS_ALLOW_CREDENTIALS = True
 # CORS_ORIGIN_ALLOW_ALL = True
 # CORS_REPLACE_HTTPS_REFERER = True
