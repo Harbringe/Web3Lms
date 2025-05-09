@@ -177,6 +177,16 @@ class TeacherCourseDetailAPIView(generics.RetrieveAPIView):
         course = api_models.Course.objects.get(course_id=course_id, platform_status="Published", teacher_course_status="Published")
         return course
     
+def get_tax_rate(country_name):
+    """Helper function to get tax rate for a country"""
+    try:
+        country_object = api_models.Country.objects.filter(name=country_name).first()
+        if country_object:
+            return Decimal(country_object.tax_rate) / Decimal(100)
+        return Decimal('0')
+    except:
+        return Decimal('0')
+
 class CartAPIView(generics.CreateAPIView):
     queryset = api_models.Cart.objects.all()
     serializer_class = api_serializer.CartSerializer
@@ -198,17 +208,15 @@ class CartAPIView(generics.CreateAPIView):
         else:
             user = None
 
-        try:
-            country_object = api_models.Country.objects.filter(name=country_name).first()
-            country = country_object.name
-        except:
-            country_object = None
-            country = "United States"
-
-        if country_object:
-            tax_rate = country_object.tax_rate / 100
-        else:
-            tax_rate = 0
+        # Get country and tax rate
+        country_object = api_models.Country.objects.filter(name=country_name).first()
+        country = country_object.name if country_object else "United States"
+        tax_rate = get_tax_rate(country)
+        
+        # Calculate tax and total
+        price_decimal = Decimal(str(price))
+        tax_fee = price_decimal * tax_rate
+        total = price_decimal + tax_fee
 
         cart = api_models.Cart.objects.filter(cart_id=cart_id, course=course).first()
 
@@ -216,25 +224,24 @@ class CartAPIView(generics.CreateAPIView):
             cart.course = course
             cart.user = user
             cart.price = price
-            cart.tax_fee = Decimal(price) * Decimal(tax_rate)
+            cart.tax_fee = tax_fee
             cart.country = country
             cart.cart_id = cart_id
-            cart.total = Decimal(cart.price) + Decimal(cart.tax_fee)
+            cart.total = total
             cart.save()
 
             return Response({"message": "Cart Updated Successfully"}, status=status.HTTP_200_OK)
 
         else:
-            cart = api_models.Cart()
-
-            cart.course = course
-            cart.user = user
-            cart.price = price
-            cart.tax_fee = Decimal(price) * Decimal(tax_rate)
-            cart.country = country
-            cart.cart_id = cart_id
-            cart.total = Decimal(cart.price) + Decimal(cart.tax_fee)
-            cart.save()
+            cart = api_models.Cart.objects.create(
+                course=course,
+                user=user,
+                price=price,
+                tax_fee=tax_fee,
+                country=country,
+                cart_id=cart_id,
+                total=total
+            )
 
             return Response({"message": "Cart Created Successfully"}, status=status.HTTP_201_CREATED)
 
@@ -315,10 +322,10 @@ class CreateOrderAPIView(generics.CreateAPIView):
 
         cart_items = api_models.Cart.objects.filter(cart_id=cart_id)
 
-        total_price = Decimal(0.00)
-        total_tax = Decimal(0.00)
-        total_initial_total = Decimal(0.00)
-        total_total = Decimal(0.00)
+        total_price = Decimal('0.00')
+        total_tax = Decimal('0.00')
+        total_initial_total = Decimal('0.00')
+        total_total = Decimal('0.00')
 
         order = api_models.CartOrder.objects.create(
             full_name=full_name,
@@ -328,20 +335,26 @@ class CreateOrderAPIView(generics.CreateAPIView):
         )
 
         for c in cart_items:
+            # Recalculate tax to ensure consistency
+            tax_rate = get_tax_rate(c.country)
+            price_decimal = Decimal(str(c.price))
+            tax_fee = price_decimal * tax_rate
+            total = price_decimal + tax_fee
+
             api_models.CartOrderItem.objects.create(
                 order=order,
                 course=c.course,
-                price=c.price,
-                tax_fee=c.tax_fee,
-                total=c.total,
-                initial_total=c.total,
+                price=price_decimal,
+                tax_fee=tax_fee,
+                total=total,
+                initial_total=total,
                 teacher=c.course.teacher
             )
 
-            total_price += Decimal(c.price)
-            total_tax += Decimal(c.tax_fee)
-            total_initial_total += Decimal(c.total)
-            total_total += Decimal(c.total)
+            total_price += price_decimal
+            total_tax += tax_fee
+            total_initial_total += total
+            total_total += total
 
             order.teachers.add(c.course.teacher)
 
