@@ -440,7 +440,7 @@ class RazorpayCheckoutAPIView(generics.CreateAPIView):
                 'amount': int(order.total),
                 'currency': 'INR',
                 'name': 'Web3Lms',
-                'description': f'Payment for order {order.oid}',
+                'description': f'Payment for order {order.oid} of {order.total} by {order.full_name} ({order.email})',
                 'order_id': razorpay_order['id'],
                 'callback_url': f'{settings.FRONTEND_SITE_URL}/payment/success',
                 'prefill': {
@@ -448,7 +448,14 @@ class RazorpayCheckoutAPIView(generics.CreateAPIView):
                     'email': order.email,
                 },
                 'notes': {
-                    'order_id': order.oid
+                    'order_id': order.oid,
+                    'date' : order.date,
+                    'full_name' : order.full_name,
+                    'email': order.email,
+                    'sub_total' : order.sub_total,
+                    'tax_fee' : order.tax_fee,
+                    'total' : order.total,
+                    'country' : order.country
                 },
                 'theme': {
                     'color': '#4F46E5'
