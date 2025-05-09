@@ -425,7 +425,7 @@ class RazorpayCheckoutAPIView(generics.CreateAPIView):
         try:
             # Create Razorpay Order
             razorpay_order = razorpay_client.order.create({
-                'amount': int(order.total), 
+                'amount': int(order.total) * 100, 
                 'currency': 'INR',
                 'receipt': order.oid,
                 'payment_capture': '1'
