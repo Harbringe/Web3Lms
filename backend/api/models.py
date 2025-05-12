@@ -123,7 +123,7 @@ class Course(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
     file = models.FileField(upload_to="course-file", blank=True, null=True, default=default_course_image)
-    image = models.FileField(upload_to="course-file", blank=True, null=True, default=defa)
+    image = models.FileField(upload_to="course-file", blank=True, null=True, default=default_course_image)
     title = models.CharField(max_length=200, null=True)
     description = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, blank=True, null=True)

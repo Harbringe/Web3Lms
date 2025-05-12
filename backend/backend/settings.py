@@ -155,8 +155,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default static files configuration
-DEFAULT_AVATAR = '/static/images/defaults/avatars/default-avatar.png'
-DEFAULT_COURSE_IMAGE = '/static/images/defaults/default-course.png'
+DEFAULT_AVATAR = '/static/images/defaults/avatars/default-avatar.jpg'
+DEFAULT_COURSE_IMAGE = '/static/images/defaults/default-course.jpg'
+DEFAULT_CATEGORY_IMAGE = '/static/images/defaults/default-category.jpg'
 
 AUTH_USER_MODEL = 'userauths.User'
 
