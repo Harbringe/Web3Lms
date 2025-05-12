@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
+from django.conf import settings
 
 
 from userauths.models import User, Profile
@@ -59,9 +60,18 @@ NOTI_TYPE = (
     ("Course Enrollment Completed", "Course Enrollment Completed"),
 )
 
+# In your model or view
+default_avatar = settings.DEFAULT_AVATAR
+
+# In your model or view
+default_course_image = settings.DEFAULT_COURSE_IMAGE
+
+# In your model or view
+default_category_image = settings.DEFAULT_CATEGORY_IMAGE
+
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.FileField(upload_to="course-file", blank=True, null=True, default="default.jpg")
+    image = models.FileField(upload_to="course-file", blank=True, null=True, default=default_avatar)
     full_name = models.CharField(max_length=100)
     bio = models.CharField(max_length=100, null=True, blank=True)
     facebook = models.URLField(null=True, blank=True)
@@ -90,7 +100,7 @@ class Teacher(models.Model):
     
 class Category(models.Model):
     title = models.CharField(max_length=100)
-    image = models.FileField(upload_to="course-file", default="category.jpg", null=True, blank=True)
+    image = models.FileField(upload_to="course-file", default=default_category_image, null=True, blank=True)
     active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, null=True, blank=True)
 
@@ -112,8 +122,8 @@ class Category(models.Model):
 class Course(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
-    file = models.FileField(upload_to="course-file", blank=True, null=True, default="default.jpg")
-    image = models.FileField(upload_to="course-file", blank=True, null=True, default="default.jpg")
+    file = models.FileField(upload_to="course-file", blank=True, null=True, default=default_course_image)
+    image = models.FileField(upload_to="course-file", blank=True, null=True, default=defa)
     title = models.CharField(max_length=200, null=True)
     description = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, blank=True, null=True)
@@ -138,7 +148,7 @@ class Course(models.Model):
     
     def save(self, *args, **kwargs):
         if self.slug == "" or self.slug == None:
-            self.slug = slugify(self.title) + " _ " + str(self.course_id)
+            self.slug = slugify(self.title) + "_" + str(self.course_id)
             
         if not self.nft_id and self.teacher:
             self.set_nft_id()

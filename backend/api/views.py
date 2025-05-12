@@ -174,7 +174,7 @@ class TeacherCourseDetailAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         course_id = self.kwargs['course_id']
-        course = api_models.Course.objects.get(course_id=course_id, platform_status="Published", teacher_course_status="Published")
+        course = api_models.Course.objects.get(course_id=course_id)
         return course
     
 def get_tax_rate(country_name):
