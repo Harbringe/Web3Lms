@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import check_password
 from django.db import models
 from django.db.models.functions import ExtractMonth
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.utils import timezone
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -1284,3 +1285,177 @@ class FileUploadAPIView(APIView):
             })
 
         return Response({"error": "No file provided"}, status=400)
+
+
+
+'''
+
+EXPERIMENTAL
+
+'''
+
+
+class StudentCertificateCreateAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.CertificateSerializer
+    permission_classes = [AllowAny]
+    
+    def create(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
+        course_id = request.data.get('course_id')
+        
+        # Get the user and course
+        try:
+            user = User.objects.get(id=user_id)
+            course = api_models.Course.objects.get(course_id=course_id)
+        except (User.DoesNotExist, api_models.Course.DoesNotExist):
+            return Response(
+                {"message": "User or course not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Check if the student is enrolled in the course
+        enrollment = api_models.EnrolledCourse.objects.filter(
+            user=user, 
+            course=course
+        ).first()
+        
+        if not enrollment:
+            return Response(
+                {"message": "You are not enrolled in this course"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if certificate already exists
+        certificate = api_models.Certificate.objects.filter(
+            user=user, 
+            course=course
+        ).first()
+        
+        if certificate:
+            # Return the existing certificate
+            serializer = self.get_serializer(certificate)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        # Check if the course is completed
+        total_lectures = course.get_total_lectures()
+        completed_lessons = api_models.CompletedLesson.objects.filter(
+            user=user,
+            course=course
+        ).count()
+        
+        completion_percentage = (completed_lessons / total_lectures * 100) if total_lectures > 0 else 0
+        
+        # Only create certificate if all lessons are completed
+        if completed_lessons >= total_lectures:
+            # Create certificate with the new model fields
+            certificate_data = {
+                'user': user.id,
+                'course': course.id,
+                'student_name': user.full_name or user.username,
+                'course_name': course.title,
+                'completion_date': timezone.now().date(),
+                'status': 'active',
+            }
+            
+            serializer = self.get_serializer(data=certificate_data)
+            serializer.is_valid(raise_exception=True)
+            certificate = self.perform_create(serializer)
+            
+            # Generate verification URL for the certificate
+            if certificate and hasattr(certificate, 'generate_verification_url'):
+                certificate.generate_verification_url()
+            
+            # Create notification for student
+            api_models.Notification.objects.create(
+                user=user,
+                teacher=course.teacher,
+                type="Course Enrollment Completed",
+                seen=False
+            )
+            
+            # Create notification for teacher
+            api_models.Notification.objects.create(
+                teacher=course.teacher,
+                type="Course Enrollment Completed",
+                seen=False
+            )
+            
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                {
+                    "message": "Course not fully completed. Complete all lessons to get a certificate.",
+                    "completed_lessons": completed_lessons,
+                    "total_lectures": total_lectures,
+                    "completion_percentage": completion_percentage
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def perform_create(self, serializer):
+        return serializer.save()
+
+class StudentCertificateListAPIView(generics.ListAPIView):
+    serializer_class = api_serializer.CertificateSerializer
+    permission_classes = [AllowAny]
+    
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        user = User.objects.get(id=user_id)
+        return api_models.Certificate.objects.filter(user=user)
+
+class StudentCertificateDetailAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.CertificateSerializer
+    permission_classes = [AllowAny]
+    
+    def get_object(self):
+        certificate_id = self.kwargs['certificate_id']
+        user_id = self.kwargs['user_id']
+        
+        try:
+            user = User.objects.get(id=user_id)
+            return api_models.Certificate.objects.get(
+                certificate_id=certificate_id,
+                user=user
+            )
+        except api_models.Certificate.DoesNotExist:
+            return None
+
+class CertificateVerificationAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.CertificateSerializer
+    permission_classes = [AllowAny]
+    
+    def get_object(self):
+        certificate_id = self.kwargs.get('certificate_id')
+        
+        try:
+            certificate = api_models.Certificate.objects.get(
+                certificate_id=certificate_id
+            )
+            return certificate
+        except api_models.Certificate.DoesNotExist:
+            return None
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance:
+            return Response({
+                "verified": False,
+                "message": "Certificate verification failed. This certificate is either invalid or has been revoked."
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if certificate is active
+        if instance.status != 'active':
+            return Response({
+                "verified": False,
+                "message": f"Certificate is {instance.status}.",
+                "status": instance.status
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data.update({
+            "verified": True,
+            "message": "Certificate successfully verified."
+        })
+        return Response(data)

@@ -5,7 +5,6 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     # Authentication Endpoints
-
     path("user/token/", api_views.MyTokenObtainPairView.as_view()),
     path("user/token/refresh/", TokenRefreshView.as_view()),
     path("user/register/", api_views.RegisterView.as_view()),
@@ -42,6 +41,14 @@ urlpatterns = [
     path("student/wishlist/<user_id>/", api_views.StudentWishListListCreateAPIView.as_view()),
     path("student/question-answer-list-create/<course_id>/", api_views.QuestionAnswerListCreateAPIView.as_view()),
     path("student/question-answer-message-create/", api_views.QuestionAnswerMessageSendAPIView.as_view()),
+
+    # EXPERIMENTAL
+
+    # Certificate Endpoints
+    path("student/certificate/create/", api_views.StudentCertificateCreateAPIView.as_view()),
+    path("student/certificate/list/<user_id>/", api_views.StudentCertificateListAPIView.as_view()),
+    path("student/certificate/detail/<user_id>/<certificate_id>/", api_views.StudentCertificateDetailAPIView.as_view()),
+    path("verify-certificate/<certificate_id>/", api_views.CertificateVerificationAPIView.as_view()),
 
 
     # Teacher Routes

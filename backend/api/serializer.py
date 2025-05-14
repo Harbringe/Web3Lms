@@ -329,3 +329,69 @@ class TeacherSummarySerializer(serializers.Serializer):
 
 class FileUploadSerializer(serializers.Serializer):
     file = serializers.FileField(required=True)
+
+
+
+
+'''
+
+EXPERIMENTAL
+
+'''
+
+
+class CertificateSerializer(serializers.ModelSerializer):
+    course_title = serializers.SerializerMethodField()
+    teacher_name = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+    course_image = serializers.SerializerMethodField()
+    completion_date = serializers.SerializerMethodField()
+    course_level = serializers.SerializerMethodField()
+    course_description = serializers.SerializerMethodField()
+    
+    class Meta:
+        fields = [
+            'id', 'course', 'user', 'certificate_id', 'student_name', 'course_name',
+            'completion_date', 'issue_date', 'verification_url', 'status', 
+            'pdf_file', 'metadata', 'course_title', 'teacher_name', 
+            'user_name', 'course_image', 'course_level', 'course_description'
+        ]
+        model = api_models.Certificate
+        
+    def get_course_title(self, obj):
+        return obj.course.title
+    
+    def get_teacher_name(self, obj):
+        if obj.course.teacher:
+            return obj.course.teacher.full_name
+        return None
+    
+    def get_user_name(self, obj):
+        if obj.user:
+            return obj.user.full_name
+        return None
+    
+    def get_course_image(self, obj):
+        if obj.course.image:
+            return obj.course.image.url
+        return None
+    
+    def get_completion_date(self, obj):
+        if hasattr(obj, 'completion_date'):
+            return obj.completion_date.strftime("%B %d, %Y")
+        return obj.issue_date.strftime("%B %d, %Y")
+    
+    def get_course_level(self, obj):
+        return obj.course.level
+    
+    def get_course_description(self, obj):
+        return obj.course.description
+    
+    def __init__(self, *args, **kwargs):
+        super(CertificateSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if request and request.method == "POST":
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+

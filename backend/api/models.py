@@ -350,11 +350,57 @@ class Certificate(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     certificate_id = ShortUUIDField(unique=True, length=6, max_length=20, alphabet="1234567890")
-    date = models.DateTimeField(default=timezone.now)
+    student_name = models.CharField(max_length=200)
+    course_name = models.CharField(max_length=200)
+    completion_date = models.DateField()
+    issue_date = models.DateTimeField(auto_now_add=True)
+    verification_url = models.URLField(blank=True, null=True)
+    status = models.CharField(
+        choices=[
+            ('active', 'Active'),
+            ('revoked', 'Revoked'),
+            ('expired', 'Expired')
+        ],
+        default='active',
+        max_length=20
+    )
+    pdf_file = models.FileField(upload_to='certificates/', null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)  # For storing additional certificate data
 
     def __str__(self):
-        return self.course.title
+        return f"{self.student_name} - {self.course_name}"
     
+    def save(self, *args, **kwargs):
+        if not self.student_name and self.user:
+            self.student_name = self.user.full_name or self.user.username
+        if not self.course_name and self.course:
+            self.course_name = self.course.title
+        if not self.completion_date:
+            self.completion_date = timezone.now().date()
+        super().save(*args, **kwargs)
+
+    def generate_verification_url(self):
+        """Generate a unique verification URL for the certificate"""
+        if not self.verification_url:
+            self.verification_url = f"{settings.FRONTEND_SITE_URL}/verify-certificate/{self.certificate_id}"
+            self.save()
+        return self.verification_url
+
+    def revoke(self):
+        """Revoke the certificate"""
+        self.status = 'revoked'
+        self.save()
+
+    def verify(self):
+        """Verify if the certificate is valid"""
+        return self.status == 'active'
+
+    class Meta:
+        ordering = ['-issue_date']
+        verbose_name = "Certificate"
+        verbose_name_plural = "Certificates"
+        
+
 class CompletedLesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
