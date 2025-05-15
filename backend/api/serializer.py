@@ -331,15 +331,6 @@ class FileUploadSerializer(serializers.Serializer):
     file = serializers.FileField(required=True)
 
 
-
-
-'''
-
-EXPERIMENTAL
-
-'''
-
-
 class CertificateSerializer(serializers.ModelSerializer):
     course_title = serializers.SerializerMethodField()
     teacher_name = serializers.SerializerMethodField()
