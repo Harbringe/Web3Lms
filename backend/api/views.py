@@ -1288,6 +1288,12 @@ class FileUploadAPIView(APIView):
 
 
 
+'''
+
+EXPERIMENTAL
+
+'''
+
 
 class StudentCertificateCreateAPIView(generics.CreateAPIView):
     serializer_class = api_serializer.CertificateSerializer
