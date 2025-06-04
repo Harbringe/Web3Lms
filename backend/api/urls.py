@@ -74,9 +74,11 @@ urlpatterns = [
     path("file-upload/", api_views.FileUploadAPIView.as_view()),
 
     # NFT Endpoints
-    path("nft/", api_views.NFTListCreateAPIView.as_view()),
-    path("nft/<str:policy_id>/", api_views.NFTDetailAPIView.as_view()),
-    path("nft/verify/<str:policy_id>/", api_views.NFTByPolicyIDAPIView.as_view()),
+    # path("nft/", api_views.NFTListCreateAPIView.as_view()),
+    # path("nft/<str:policy_id>/", api_views.NFTDetailAPIView.as_view()),
+    # path("nft/verify/<str:policy_id>/", api_views.NFTByPolicyIDAPIView.as_view()),
+    path("nft/mint/", api_views.NFTMintAPIView.as_view()),
+    path("nft/user/<int:user_id>/", api_views.UserNFTListView.as_view()),
 ]
 
 

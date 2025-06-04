@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 from userauths.models import User, Profile
@@ -206,20 +207,26 @@ class Course(models.Model):
 
 
 class NFT(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)
-    policy_id = models.CharField(max_length=1000, unique=True)
-    asset_id = models.CharField(max_length=1000, unique=True)
-    metadata = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.policy_id} - {self.asset_id}"
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
+    policy_id = models.CharField(max_length=255)
+    asset_id = models.CharField(max_length=255, unique=True)
+    original_wallet_address = models.CharField(max_length=255,null=True, blank=True)
+    metadata = models.JSONField(null=True, blank=True)
+    minted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "NFT"
-        verbose_name_plural = "NFTs"
-        ordering = ['-created_at']
+        verbose_name = "Course NFT"
+        verbose_name_plural = "Course NFTs"
+        ordering = ['-minted_at']
+
+    def __str__(self):
+        return f"NFT for {self.course.title} - {self.asset_id}"
+
+    def clean(self):
+        # Optional: Check if user already owns an NFT for this course
+        if NFT.objects.filter(course=self.course, user=self.user).exists():
+            raise ValidationError("User already owns an NFT for this course")
 
 
 class Variant(models.Model):

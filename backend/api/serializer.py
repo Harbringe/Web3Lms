@@ -293,30 +293,14 @@ class EnrolledCourseSerializer(serializers.ModelSerializer):
         else:
             self.Meta.depth = 3
 
-class NFTSerializer(serializers.ModelSerializer):
-    course = serializers.PrimaryKeyRelatedField(queryset=api_models.Course.objects.all())
-    
-    class Meta:
-        fields = ['id', 'course', 'policy_id', 'asset_id', 'metadata', 'created_at', 'updated_at']
-        model = api_models.NFT
-
-    def __init__(self, *args, **kwargs):
-        super(NFTSerializer, self).__init__(*args, **kwargs)
-        request = self.context.get("request")
-        if request and request.method == "POST":
-            self.Meta.depth = 0
-        else:
-            self.Meta.depth = 1
-
 class CourseSerializer(serializers.ModelSerializer):
     students = EnrolledCourseSerializer(many=True, required=False, read_only=True,)
     curriculum = VariantSerializer(many=True, required=False, read_only=True,)
     lectures = VariantItemSerializer(many=True, required=False, read_only=True,)
     reviews = ReviewSerializer(many=True, read_only=True, required=False)
-    nfts = NFTSerializer(many=True, read_only=True, required=False)
     
     class Meta:
-        fields = ["id", "category", "teacher", "file", "image", "title", "description", "price", "language", "level", "platform_status", "teacher_course_status", "featured", "course_id", "slug", "date", "nfts", "students", "curriculum", "lectures", "average_rating", "rating_count", "reviews",]
+        fields = ["id", "category", "teacher", "file", "image", "title", "description", "price", "language", "level", "platform_status", "teacher_course_status", "featured", "course_id", "slug", "date", "students", "curriculum", "lectures", "average_rating", "rating_count", "reviews",]
         model = api_models.Course
 
     def __init__(self, *args, **kwargs):
@@ -327,7 +311,52 @@ class CourseSerializer(serializers.ModelSerializer):
         else:
             self.Meta.depth = 3
 
+class NFTSerializer(serializers.ModelSerializer):
+    course_details = CourseSerializer(source='course', read_only=True)
+    enrollment_id = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = api_models.NFT
+        fields = ['id', 'course', 'course_details', 'user', 'policy_id', 'asset_id', 
+                 'original_wallet_address', 'metadata', 'minted_at', 'enrollment_id']
+        read_only_fields = ['id', 'minted_at', 'course_details', 'enrollment_id']
 
+    def get_enrollment_id(self, obj):
+        enrollment = api_models.EnrolledCourse.objects.filter(
+            user=obj.user,
+            course=obj.course
+        ).first()
+        return enrollment.enrollment_id if enrollment else None
+
+    def validate(self, data):
+        # Validate course exists
+        try:
+            api_models.Course.objects.get(id=data['course'].id)
+        except api_models.Course.DoesNotExist:
+            raise serializers.ValidationError("Course does not exist")
+
+        # Validate user exists
+        try:
+            User.objects.get(id=data['user'].id)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User does not exist")
+
+        # Validate asset_id is unique
+        if api_models.NFT.objects.filter(asset_id=data['asset_id']).exists():
+            raise serializers.ValidationError("Asset ID must be unique")
+
+        # Validate metadata format
+        metadata = data.get('metadata', {})
+        if not isinstance(metadata, dict):
+            raise serializers.ValidationError("Metadata must be a JSON object")
+
+        # Validate required metadata fields
+        required_fields = ['course_id', 'user_id', 'original_wallet']
+        for field in required_fields:
+            if field not in metadata:
+                raise serializers.ValidationError(f"Metadata must contain {field}")
+
+        return data
 
 class StudentSummarySerializer(serializers.Serializer):
     total_courses = serializers.IntegerField(default=0)

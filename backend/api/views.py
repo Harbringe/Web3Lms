@@ -1479,3 +1479,90 @@ class NFTByPolicyIDAPIView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     queryset = api_models.NFT.objects.all()
     lookup_field = 'policy_id'
+
+class NFTMintAPIView(generics.CreateAPIView):
+    queryset = api_models.NFT.objects.all()
+    serializer_class = api_serializer.NFTSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        # Extract data from request
+        course_id = request.data.get('course_id') or request.data.get('course')  # Accept either course_id or course
+        user = request.data.get('user')
+        policy_id = request.data.get('policy_id')
+        asset_id = request.data.get('asset_id')
+        original_wallet_address = request.data.get('original_wallet_address')
+        metadata = request.data.get('metadata', {})
+
+        # Validate required fields
+        if not all([course_id, user, policy_id, asset_id, original_wallet_address]):
+            return Response(
+                {"error": "Missing required fields"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get course and user objects
+        try:
+            course_obj = api_models.Course.objects.get(course_id=course_id)
+            user_obj = User.objects.get(id=user)
+        except (api_models.Course.DoesNotExist, User.DoesNotExist):
+            return Response(
+                {"error": "Course or user not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check if user is enrolled in the course and get enrollment
+        enrollment = api_models.EnrolledCourse.objects.filter(user=user_obj, course=course_obj).first()
+        if not enrollment:
+            return Response(
+                {"error": "User is not enrolled in this course"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if NFT already exists
+        if api_models.NFT.objects.filter(asset_id=asset_id).exists():
+            return Response(
+                {"error": "NFT with this asset ID already exists"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Prepare metadata with required fields
+        metadata.update({
+            'course_id': course_obj.course_id,
+            'user_id': user,
+            'original_wallet': original_wallet_address,
+            'enrollment_id': enrollment.enrollment_id
+        })
+
+        # Create NFT
+        nft_data = {
+            'course': course_obj.id,
+            'user': user,
+            'policy_id': policy_id,
+            'asset_id': asset_id,
+            'original_wallet_address': original_wallet_address,
+            'metadata': metadata
+        }
+
+        serializer = self.get_serializer(data=nft_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # Create notification for user
+        api_models.Notification.objects.create(
+            user=user_obj,
+            teacher=course_obj.teacher,
+            type="Course NFT Minted",
+            seen=False
+        )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class UserNFTListView(generics.ListAPIView):
+    serializer_class = api_serializer.NFTSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        return api_models.NFT.objects.filter(user_id=user_id)
