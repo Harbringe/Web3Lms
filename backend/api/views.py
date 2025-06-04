@@ -1530,7 +1530,7 @@ class NFTMintAPIView(generics.CreateAPIView):
         metadata.update({
             'course_id': course_obj.course_id,
             'user_id': user,
-            'original_wallet': original_wallet_address,
+            'original_wallet_address': original_wallet_address,
             'enrollment_id': enrollment.enrollment_id
         })
 
