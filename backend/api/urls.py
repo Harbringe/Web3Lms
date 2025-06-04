@@ -71,8 +71,12 @@ urlpatterns = [
     path("teacher/course/variant-delete/<variant_id>/<teacher_id>/<course_id>/", api_views.CourseVariantDeleteAPIView.as_view()),
     path("teacher/course/variant-item-delete/<variant_id>/<variant_item_id>/<teacher_id>/<course_id>/", api_views.CourseVariantItemDeleteAPIVIew.as_view()),
 
-    path("file-upload/", api_views.FileUploadAPIView.as_view())
+    path("file-upload/", api_views.FileUploadAPIView.as_view()),
 
+    # NFT Endpoints
+    path("nft/", api_views.NFTListCreateAPIView.as_view()),
+    path("nft/<str:policy_id>/", api_views.NFTDetailAPIView.as_view()),
+    path("nft/verify/<str:policy_id>/", api_views.NFTByPolicyIDAPIView.as_view()),
 ]
 
 

@@ -1459,3 +1459,23 @@ class CertificateVerificationAPIView(generics.RetrieveAPIView):
             "message": "Certificate successfully verified."
         })
         return Response(data)
+
+class NFTListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = api_serializer.NFTSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = api_models.NFT.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class NFTDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = api_serializer.NFTSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = api_models.NFT.objects.all()
+    lookup_field = 'policy_id'
+
+class NFTByPolicyIDAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.NFTSerializer
+    permission_classes = [AllowAny]
+    queryset = api_models.NFT.objects.all()
+    lookup_field = 'policy_id'

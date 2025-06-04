@@ -25,3 +25,4 @@ admin.site.register(models.Country)
 # EXPERIMENTAL 
 
 admin.site.register(models.Certificate)
+admin.site.register(models.NFT)

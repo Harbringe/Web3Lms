@@ -293,14 +293,30 @@ class EnrolledCourseSerializer(serializers.ModelSerializer):
         else:
             self.Meta.depth = 3
 
+class NFTSerializer(serializers.ModelSerializer):
+    course = serializers.PrimaryKeyRelatedField(queryset=api_models.Course.objects.all())
+    
+    class Meta:
+        fields = ['id', 'course', 'policy_id', 'asset_id', 'metadata', 'created_at', 'updated_at']
+        model = api_models.NFT
+
+    def __init__(self, *args, **kwargs):
+        super(NFTSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if request and request.method == "POST":
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+
 class CourseSerializer(serializers.ModelSerializer):
     students = EnrolledCourseSerializer(many=True, required=False, read_only=True,)
     curriculum = VariantSerializer(many=True, required=False, read_only=True,)
     lectures = VariantItemSerializer(many=True, required=False, read_only=True,)
     reviews = ReviewSerializer(many=True, read_only=True, required=False)
+    nfts = NFTSerializer(many=True, read_only=True, required=False)
     
     class Meta:
-        fields = ["id", "category", "teacher", "file", "image", "title", "description", "price", "language", "level", "platform_status", "teacher_course_status", "featured", "course_id", "slug", "date", "nft_id", "students", "curriculum", "lectures", "average_rating", "rating_count", "reviews",]
+        fields = ["id", "category", "teacher", "file", "image", "title", "description", "price", "language", "level", "platform_status", "teacher_course_status", "featured", "course_id", "slug", "date", "nfts", "students", "curriculum", "lectures", "average_rating", "rating_count", "reviews",]
         model = api_models.Course
 
     def __init__(self, *args, **kwargs):

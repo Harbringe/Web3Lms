@@ -119,6 +119,7 @@ class Category(models.Model):
             self.slug = slugify(self.title) 
         super(Category, self).save(*args, **kwargs)
             
+
 class Course(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
@@ -135,7 +136,6 @@ class Course(models.Model):
     course_id = ShortUUIDField(unique=True, length=6, max_length=20, alphabet="1234567890", null=False, blank=False)
     slug = models.SlugField(unique=True, null=True, blank=True)
     date = models.DateTimeField(default=timezone.now)
-    nft_id = models.CharField(unique=True, blank=True, null=False, max_length=1000)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
@@ -150,7 +150,7 @@ class Course(models.Model):
         if self.slug == "" or self.slug == None:
             self.slug = slugify(self.title) + "_" + str(self.course_id)
             
-        if not self.nft_id and self.teacher:
+        if self.teacher and not self.nfts.exists():
             self.set_nft_id()
             
         super(Course, self).save(*args, **kwargs)
@@ -174,9 +174,19 @@ class Course(models.Model):
     def reviews(self):
         return Review.objects.filter(course=self, active=True)
     
-    def set_nft_id(self):
-        self.nft_id = f"{self.teacher.wallet_address}_{self.slug}"
-    
+    # def set_nft_id(self):
+    #     policy_id = f"{self.teacher.wallet_address}_{self.slug}"
+    #     NFT.objects.create(
+    #         course=self,
+    #         policy_id=policy_id,
+    #         asset_id=f"{policy_id}_asset",
+    #         metadata={
+    #             'course_title': self.title,
+    #             'teacher': self.teacher.full_name,
+    #             'created_at': timezone.now().isoformat()
+    #         }
+    #     )
+
     def is_published(self):
         return self.platform_status == "Published" and self.teacher_course_status == "Published"
     
@@ -193,7 +203,25 @@ class Course(models.Model):
     
     def get_total_lectures(self):
         return self.lectures().count()
-    
+
+
+class NFT(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)
+    policy_id = models.CharField(max_length=1000, unique=True)
+    asset_id = models.CharField(max_length=1000, unique=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.policy_id} - {self.asset_id}"
+
+    class Meta:
+        verbose_name = "NFT"
+        verbose_name_plural = "NFTs"
+        ordering = ['-created_at']
+
+
 class Variant(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     title = models.CharField(max_length=1000)
