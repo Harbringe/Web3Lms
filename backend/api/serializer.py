@@ -14,6 +14,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['full_name'] = user.full_name
         token['email'] = user.email
         token['username'] = user.username
+        token['wallet_address'] = user.wallet_address
         try:
             token['teacher_id'] = user.teacher.id
         except:
