@@ -207,7 +207,7 @@ class Course(models.Model):
 
 
 class NFT(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
+   # course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
     policy_id = models.CharField(max_length=255)
     asset_id = models.CharField(max_length=255, unique=True)
