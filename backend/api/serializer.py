@@ -346,17 +346,6 @@ class NFTSerializer(serializers.ModelSerializer):
         if api_models.NFT.objects.filter(asset_id=data['asset_id']).exists():
             raise serializers.ValidationError("Asset ID must be unique")
 
-        # Validate metadata format
-        metadata = data.get('metadata', {})
-        if not isinstance(metadata, dict):
-            raise serializers.ValidationError("Metadata must be a JSON object")
-
-        # Validate required metadata fields
-        required_fields = ['course_id', 'user_id', 'original_wallet']
-        for field in required_fields:
-            if field not in metadata:
-                raise serializers.ValidationError(f"Metadata must contain {field}")
-
         return data
 
 class StudentSummarySerializer(serializers.Serializer):
