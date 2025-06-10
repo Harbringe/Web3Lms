@@ -80,7 +80,7 @@ class Teacher(models.Model):
     linkedin = models.URLField(null=True, blank=True)
     about = models.TextField(null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
-    wallet_address = models.CharField(max_length=1000, unique=True, blank=True)
+    # wallet_address = models.CharField(max_length=1000, unique=True, blank=True, null=True)
 
     def __str__(self):
         return self.full_name
@@ -94,10 +94,10 @@ class Teacher(models.Model):
     def review(self):
         return Course.objects.filter(teacher=self).count()
     
-    def save(self, *args, **kwargs):
-        if not self.wallet_address:
-            self.wallet_address = self.user.wallet_address
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if not self.wallet_address:
+    #         self.wallet_address = self.user.wallet_address
+    #     super().save(*args, **kwargs)
     
 class Category(models.Model):
     title = models.CharField(max_length=100)
