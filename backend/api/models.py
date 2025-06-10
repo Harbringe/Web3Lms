@@ -151,9 +151,6 @@ class Course(models.Model):
         if self.slug == "" or self.slug == None:
             self.slug = slugify(self.title) + "_" + str(self.course_id)
             
-        if self.teacher and not self.nfts.exists():
-            self.set_nft_id()
-            
         super(Course, self).save(*args, **kwargs)
 
     def students(self):        
@@ -174,19 +171,6 @@ class Course(models.Model):
     
     def reviews(self):
         return Review.objects.filter(course=self, active=True)
-    
-    # def set_nft_id(self):
-    #     policy_id = f"{self.teacher.wallet_address}_{self.slug}"
-    #     NFT.objects.create(
-    #         course=self,
-    #         policy_id=policy_id,
-    #         asset_id=f"{policy_id}_asset",
-    #         metadata={
-    #             'course_title': self.title,
-    #             'teacher': self.teacher.full_name,
-    #             'created_at': timezone.now().isoformat()
-    #         }
-    #     )
 
     def is_published(self):
         return self.platform_status == "Published" and self.teacher_course_status == "Published"
