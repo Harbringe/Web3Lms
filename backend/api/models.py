@@ -244,28 +244,6 @@ class Certificate(models.Model):
         verbose_name = "Certificate"
         verbose_name_plural = "Certificates"
 
-class NFT(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
-    policy_id = models.CharField(max_length=255)
-    asset_id = models.CharField(max_length=255, unique=True)
-    original_wallet_address = models.CharField(max_length=255,null=True, blank=True)
-    metadata = models.JSONField(null=True, blank=True)
-    minted_at = models.DateTimeField(auto_now_add=True)
-    certificate = models.ForeignKey(Certificate, on_delete=models.CASCADE, related_name='nfts', null=True, blank=True)
-
-    class Meta:
-        verbose_name = "Course NFT"
-        verbose_name_plural = "Course NFTs"
-        ordering = ['-minted_at']
-
-    def __str__(self):
-        return f"NFT for {self.course.title} - {self.asset_id}"
-
-    def clean(self):
-        # Optional: Check if user already owns an NFT for this course
-        if NFT.objects.filter(course=self.course, user=self.user).exists():
-            raise ValidationError("User already owns an NFT for this course")
 
 
 class Variant(models.Model):
@@ -525,3 +503,34 @@ class Country(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class NFT(models.Model):
+    enrollment = models.ForeignKey(EnrolledCourse, on_delete=models.CASCADE, related_name='nfts')
+    policy_id = models.CharField(max_length=255)
+    asset_id = models.CharField(max_length=255, unique=True)
+    asset_name = models.CharField(max_length=255)
+    tx_hash = models.CharField(max_length=255)
+    image = models.URLField()
+    minted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Course NFT"
+        verbose_name_plural = "Course NFTs"
+        ordering = ['-minted_at']
+
+    def __str__(self):
+        return f"NFT for {self.enrollment.course.title} - {self.asset_id}"
+
+    @property
+    def enrollment_id(self):
+        return self.enrollment.enrollment_id if self.enrollment else None
+
+    @property
+    def user(self):
+        return self.enrollment.user if self.enrollment else None
+
+    def clean(self):
+        # Optional: Check if user already owns an NFT for this enrollment
+        if NFT.objects.filter(enrollment=self.enrollment).exists():
+            raise ValidationError("An NFT already exists for this enrollment")

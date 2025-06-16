@@ -1461,63 +1461,60 @@ class CertificateVerificationAPIView(generics.RetrieveAPIView):
         })
         return Response(data)
 
-class NFTListCreateAPIView(generics.ListCreateAPIView):
-    serializer_class = api_serializer.NFTSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = api_models.NFT.objects.all()
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-class NFTDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = api_serializer.NFTSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = api_models.NFT.objects.all()
-    lookup_field = 'policy_id'
-
-class NFTByPolicyIDAPIView(generics.RetrieveAPIView):
-    serializer_class = api_serializer.NFTSerializer
-    permission_classes = [AllowAny]
-    queryset = api_models.NFT.objects.all()
-    lookup_field = 'policy_id'
 
 class NFTMintAPIView(generics.CreateAPIView):
-    queryset = api_models.NFT.objects.all()
     serializer_class = api_serializer.NFTSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        # Extract data from request
-        course_id = request.data.get('course_id') or request.data.get('course')  # Accept either course_id or course
-        user = request.data.get('user')
-        policy_id = request.data.get('policy_id')
-        asset_id = request.data.get('asset_id')
-        original_wallet_address = request.data.get('original_wallet_address')
-        metadata = request.data.get('metadata', {})
+        # Extract data from request, handling both camelCase and snake_case
+        enrollment_id = request.data.get('enrollment_id') or request.data.get('enrollmentId')
+        policy_id = request.data.get('policy_id') or request.data.get('policyId')
+        asset_id = request.data.get('asset_id') or request.data.get('assetId')
+        asset_name = request.data.get('asset_name') or request.data.get('assetName')
+        tx_hash = request.data.get('tx_hash') or request.data.get('txHash')
+        image = request.data.get('image')
 
-        # Validate required fields
-        if not all([course_id, user, policy_id, asset_id, original_wallet_address]):
+        # Check each required field and collect missing ones
+        missing_fields = []
+        if not enrollment_id:
+            missing_fields.append('enrollment_id')
+        if not policy_id:
+            missing_fields.append('policy_id')
+        if not asset_id:
+            missing_fields.append('asset_id')
+        if not asset_name:
+            missing_fields.append('asset_name')
+        if not tx_hash:
+            missing_fields.append('tx_hash')
+        if not image:
+            missing_fields.append('image')
+
+        if missing_fields:
             return Response(
-                {"error": "Missing required fields"}, 
+                {
+                    "error": "Missing required fields",
+                    "missing_fields": missing_fields,
+                    "required_fields": {
+                        "enrollment_id": "ID of the enrollment",
+                        "policy_id": "Cardano policy ID",
+                        "asset_id": "Unique asset ID",
+                        "asset_name": "Name of the NFT",
+                        "tx_hash": "Transaction hash",
+                        "image": "URL of the NFT image"
+                    },
+                    "note": "You can use either snake_case (enrollment_id) or camelCase (enrollmentId) for field names"
+                }, 
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Get course and user objects
+        # Get enrollment object
         try:
-            course_obj = api_models.Course.objects.get(course_id=course_id)
-            user_obj = User.objects.get(id=user)
-        except (api_models.Course.DoesNotExist, User.DoesNotExist):
+            enrollment = api_models.EnrolledCourse.objects.get(enrollment_id=enrollment_id)
+        except api_models.EnrolledCourse.DoesNotExist:
             return Response(
-                {"error": "Course or user not found"}, 
+                {"error": "Enrollment not found"}, 
                 status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Check if user is enrolled in the course and get enrollment
-        enrollment = api_models.EnrolledCourse.objects.filter(user=user_obj, course=course_obj).first()
-        if not enrollment:
-            return Response(
-                {"error": "User is not enrolled in this course"}, 
-                status=status.HTTP_400_BAD_REQUEST
             )
 
         # Check if NFT already exists
@@ -1527,43 +1524,27 @@ class NFTMintAPIView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Prepare metadata with required fields
-        metadata.update({
-            'course_id': course_obj.course_id,
-            'user_id': user,
-            'original_wallet_address': original_wallet_address,
-            'enrollment_id': enrollment.enrollment_id
-        })
-
         # Create NFT
         nft_data = {
-            'course': course_obj.id,
-            'user': user,
+            'enrollment': enrollment.id,
             'policy_id': policy_id,
             'asset_id': asset_id,
-            'original_wallet_address': original_wallet_address,
-            'metadata': metadata
+            'asset_name': asset_name,
+            'tx_hash': tx_hash,
+            'image': image
         }
 
         serializer = self.get_serializer(data=nft_data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        nft = self.perform_create(serializer)
 
         # Create notification for user
         api_models.Notification.objects.create(
-            user=user_obj,
-            teacher=course_obj.teacher,
+            user=enrollment.user,
+            teacher=enrollment.teacher,
             type="Course NFT Minted",
             seen=False
         )
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-class UserNFTListView(generics.ListAPIView):
-    serializer_class = api_serializer.NFTSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
-        return api_models.NFT.objects.filter(user_id=user_id)

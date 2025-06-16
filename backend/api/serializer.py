@@ -312,41 +312,6 @@ class CourseSerializer(serializers.ModelSerializer):
         else:
             self.Meta.depth = 3
 
-class NFTSerializer(serializers.ModelSerializer):
-    course_details = CourseSerializer(source='course', read_only=True)
-    enrollment_id = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = api_models.NFT
-        fields = ['id', 'course', 'course_details', 'user', 'policy_id', 'asset_id', 
-                 'original_wallet_address', 'metadata', 'minted_at', 'enrollment_id']
-        read_only_fields = ['id', 'minted_at', 'course_details', 'enrollment_id']
-
-    def get_enrollment_id(self, obj):
-        enrollment = api_models.EnrolledCourse.objects.filter(
-            user=obj.user,
-            course=obj.course
-        ).first()
-        return enrollment.enrollment_id if enrollment else None
-
-    def validate(self, data):
-        # Validate course exists
-        try:
-            api_models.Course.objects.get(id=data['course'].id)
-        except api_models.Course.DoesNotExist:
-            raise serializers.ValidationError("Course does not exist")
-
-        # Validate user exists
-        try:
-            User.objects.get(id=data['user'].id)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("User does not exist")
-
-        # Validate asset_id is unique
-        if api_models.NFT.objects.filter(asset_id=data['asset_id']).exists():
-            raise serializers.ValidationError("Asset ID must be unique")
-
-        return data
 
 class StudentSummarySerializer(serializers.Serializer):
     total_courses = serializers.IntegerField(default=0)
@@ -427,3 +392,33 @@ class CertificateSerializer(serializers.ModelSerializer):
         else:
             self.Meta.depth = 1
 
+
+
+class NFTSerializer(serializers.ModelSerializer):
+    enrollment_id = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = api_models.NFT
+        fields = ['id', 'enrollment', 'enrollment_id', 'policy_id', 'asset_id', 
+                 'asset_name', 'tx_hash', 'image', 'minted_at', 'user']
+        read_only_fields = ['id', 'minted_at', 'enrollment_id', 'user']
+
+    def get_enrollment_id(self, obj):
+        return obj.enrollment.enrollment_id if obj.enrollment else None
+
+    def get_user(self, obj):
+        return obj.user.id if obj.user else None
+
+    def validate(self, data):
+        # Validate enrollment exists
+        try:
+            enrollment = api_models.EnrolledCourse.objects.get(id=data['enrollment'].id)
+        except api_models.EnrolledCourse.DoesNotExist:
+            raise serializers.ValidationError("Enrollment does not exist")
+
+        # Validate asset_id is unique
+        if api_models.NFT.objects.filter(asset_id=data['asset_id']).exists():
+            raise serializers.ValidationError("Asset ID must be unique")
+
+        return data
