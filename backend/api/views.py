@@ -1021,7 +1021,7 @@ class CourseCreateAPIView(APIView):
                 )
 
             # Create course
-            course = api_models.Course.objects.create(
+            course = api_models.Course(
                 teacher=teacher,
                 category=category,
                 title=title,
@@ -1034,8 +1034,9 @@ class CourseCreateAPIView(APIView):
                 platform_status="Draft",  # Start as draft
                 teacher_course_status="Draft"
             )
+            course.save()  # Save the course first to get a primary key
 
-            # Create notification
+            # Create notification after course is saved
             api_models.Notification.objects.create(
                 teacher=teacher,
                 type="Draft"

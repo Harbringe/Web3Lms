@@ -171,19 +171,6 @@ class Course(models.Model):
     
     def reviews(self):
         return Review.objects.filter(course=self, active=True)
-    
-    # def set_nft_id(self):
-    #     policy_id = f"{self.teacher.wallet_address}_{self.slug}"
-    #     NFT.objects.create(
-    #         course=self,
-    #         policy_id=policy_id,
-    #         asset_id=f"{policy_id}_asset",
-    #         metadata={
-    #             'course_title': self.title,
-    #             'teacher': self.teacher.full_name,
-    #             'created_at': timezone.now().isoformat()
-    #         }
-    #     )
 
     def is_published(self):
         return self.platform_status == "Published" and self.teacher_course_status == "Published"
