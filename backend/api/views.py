@@ -373,6 +373,24 @@ class CheckoutAPIView(generics.RetrieveAPIView):
     queryset = api_models.CartOrder.objects.all()
     lookup_field = 'oid'
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+
+        # Get enrollment for this order
+        enrollment = api_models.EnrolledCourse.objects.filter(
+            order_item__order=instance
+        ).first()
+
+        # Add enrollment_id to response if found
+        if enrollment:
+            data['enrollment_id'] = enrollment.enrollment_id
+        else:
+            data['enrollment_id'] = None
+
+        return Response(data)
+
 class CouponApplyAPIView(generics.CreateAPIView):
     serializer_class = api_serializer.CouponSerializer
     permission_classes = [IsAuthenticated]
