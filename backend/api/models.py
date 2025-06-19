@@ -539,7 +539,7 @@ class CertificateNFT(models.Model):
     certificate = models.ForeignKey(Certificate, on_delete=models.CASCADE, related_name='certificate_nfts')
     policy_id = models.CharField(max_length=255)
     asset_id = models.CharField(max_length=255, unique=True)
-    asset_name = models.CharField(max_length=255)
+    asset_name = models.CharField(max_length=255,unique=True)
     tx_hash = models.CharField(max_length=255)
     image = models.URLField()
     minted_at = models.DateTimeField(auto_now_add=True)

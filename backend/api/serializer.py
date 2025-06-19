@@ -425,11 +425,12 @@ class NFTSerializer(serializers.ModelSerializer):
 
 class CertificateNFTSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
+    certificate_id = serializers.CharField(source='certificate.certificate_id', read_only=True)
 
     class Meta:
         model = api_models.CertificateNFT
-        fields = ['id', 'certificate', 'policy_id', 'asset_id', 'asset_name', 'tx_hash', 'image', 'minted_at', 'user']
-        read_only_fields = ['id', 'minted_at', 'user']
+        fields = ['id', 'certificate', 'certificate_id', 'policy_id', 'asset_id', 'asset_name', 'tx_hash', 'image', 'minted_at', 'user']
+        read_only_fields = ['id', 'minted_at', 'user', 'certificate_id']
 
     def get_user(self, obj):
         return obj.user.id if obj.user else None
