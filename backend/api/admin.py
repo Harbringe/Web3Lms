@@ -26,3 +26,4 @@ admin.site.register(models.Country)
 
 admin.site.register(models.Certificate)
 admin.site.register(models.NFT)
+admin.site.register(models.CertificateNFT)
