@@ -1590,3 +1590,107 @@ class NFTAssetIdByEnrollmentAPIView(APIView):
         if not nft.enrollment.user or nft.enrollment.user.id != request.user.id:
             return Response({"error": "You are not authorized to access this NFT asset_id."}, status=status.HTTP_403_FORBIDDEN)
         return Response({"asset_id": nft.asset_id}, status=status.HTTP_200_OK)
+
+class MINTCertificateNFTAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.CertificateNFTSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        certificate_id = request.data.get('certificate_id') or request.data.get('certificateId')
+        policy_id = request.data.get('policy_id') or request.data.get('policyId')
+        asset_id = request.data.get('asset_id') or request.data.get('assetId')
+        asset_name = request.data.get('asset_name') or request.data.get('assetName')
+        tx_hash = request.data.get('tx_hash') or request.data.get('txHash')
+        image = request.data.get('image')
+
+        missing_fields = []
+        if not certificate_id:
+            missing_fields.append('certificate_id')
+        if not policy_id:
+            missing_fields.append('policy_id')
+        if not asset_id:
+            missing_fields.append('asset_id')
+        if not asset_name:
+            missing_fields.append('asset_name')
+        if not tx_hash:
+            missing_fields.append('tx_hash')
+        if not image:
+            missing_fields.append('image')
+
+        if missing_fields:
+            return Response(
+                {
+                    "error": "Missing required fields",
+                    "missing_fields": missing_fields,
+                    "required_fields": {
+                        "certificate_id": "ID of the certificate",
+                        "policy_id": "Cardano policy ID",
+                        "asset_id": "Unique asset ID",
+                        "asset_name": "Name of the NFT",
+                        "tx_hash": "Transaction hash",
+                        "image": "URL of the NFT image"
+                    },
+                    "note": "You can use either snake_case (certificate_id) or camelCase (certificateId) for field names"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get certificate object
+        try:
+            certificate = api_models.Certificate.objects.get(certificate_id=certificate_id)
+        except api_models.Certificate.DoesNotExist:
+            return Response(
+                {"error": "Certificate not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check if CertificateNFT already exists
+        if api_models.CertificateNFT.objects.filter(asset_id=asset_id).exists():
+            return Response(
+                {"error": "Certificate NFT with this asset ID already exists"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        nft_data = {
+            'certificate': certificate.id,
+            'policy_id': policy_id,
+            'asset_id': asset_id,
+            'asset_name': asset_name,
+            'tx_hash': tx_hash,
+            'image': image
+        }
+
+        serializer = self.get_serializer(data=nft_data)
+        serializer.is_valid(raise_exception=True)
+        nft = self.perform_create(serializer)
+
+        # Create notification for user
+        api_models.Notification.objects.create(
+            user=certificate.user,
+            teacher=certificate.course.teacher,
+            type="Certificate NFT Minted",
+            seen=False
+        )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class CertificateNFTByCertificateAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.CertificateNFTSerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        certificate_id = self.kwargs.get('certificate_id')
+        try:
+            certificate = api_models.Certificate.objects.get(certificate_id=certificate_id)
+            return api_models.CertificateNFT.objects.get(certificate=certificate)
+        except (api_models.Certificate.DoesNotExist, api_models.CertificateNFT.DoesNotExist):
+            return None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance:
+            return Response({"error": "Certificate NFT not found for this certificate_id"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

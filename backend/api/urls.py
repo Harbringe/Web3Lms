@@ -80,6 +80,10 @@ urlpatterns = [
     path("nft/mint/", api_views.NFTMintAPIView.as_view()),
     # path("nft/user/<int:user_id>/", api_views.UserNFTListView.as_view()),
     path("nft/asset-id/<enrollment_id>/", api_views.NFTAssetIdByEnrollmentAPIView.as_view()),
+
+    # Certificate NFT Endpoints
+    path("certificate-nft/mint/", api_views.MINTCertificateNFTAPIView.as_view()),
+    path("certificate-nft/by-certificate/<certificate_id>/", api_views.CertificateNFTByCertificateAPIView.as_view()),
 ]
 
 

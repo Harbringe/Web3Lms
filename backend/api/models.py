@@ -534,3 +534,29 @@ class NFT(models.Model):
         # Optional: Check if user already owns an NFT for this enrollment
         if NFT.objects.filter(enrollment=self.enrollment).exists():
             raise ValidationError("An NFT already exists for this enrollment")
+
+class CertificateNFT(models.Model):
+    certificate = models.ForeignKey(Certificate, on_delete=models.CASCADE, related_name='certificate_nfts')
+    policy_id = models.CharField(max_length=255)
+    asset_id = models.CharField(max_length=255, unique=True)
+    asset_name = models.CharField(max_length=255)
+    tx_hash = models.CharField(max_length=255)
+    image = models.URLField()
+    minted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Certificate NFT"
+        verbose_name_plural = "Certificate NFTs"
+        ordering = ['-minted_at']
+
+    def __str__(self):
+        return f"Certificate NFT for {self.certificate} - {self.asset_id}"
+
+    @property
+    def user(self):
+        return self.certificate.user if self.certificate else None
+
+    def clean(self):
+        # Optional: Check if a CertificateNFT already exists for this certificate
+        if CertificateNFT.objects.filter(certificate=self.certificate).exists():
+            raise ValidationError("A Certificate NFT already exists for this certificate")

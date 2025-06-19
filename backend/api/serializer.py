@@ -422,3 +422,14 @@ class NFTSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Asset ID must be unique")
 
         return data
+
+class CertificateNFTSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = api_models.CertificateNFT
+        fields = ['id', 'certificate', 'policy_id', 'asset_id', 'asset_name', 'tx_hash', 'image', 'minted_at', 'user']
+        read_only_fields = ['id', 'minted_at', 'user']
+
+    def get_user(self, obj):
+        return obj.user.id if obj.user else None
