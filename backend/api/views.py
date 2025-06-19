@@ -1566,3 +1566,15 @@ class NFTMintAPIView(generics.CreateAPIView):
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class NFTAssetIdByEnrollmentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, enrollment_id):
+        nft = api_models.NFT.objects.filter(enrollment__enrollment_id=enrollment_id).first()
+        if not nft:
+            return Response({"error": "NFT not found for this enrollment_id"}, status=status.HTTP_404_NOT_FOUND)
+        # Check if the requesting user is the owner of the enrollment
+        if not nft.enrollment.user or nft.enrollment.user.id != request.user.id:
+            return Response({"error": "You are not authorized to access this NFT asset_id."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"asset_id": nft.asset_id}, status=status.HTTP_200_OK)
