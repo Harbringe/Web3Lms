@@ -526,6 +526,18 @@ class PaymentSuccessAPIView(generics.CreateAPIView):
                 order.razorpay_signature = signature
                 order.save()
 
+                # Delete cart items after successful payment
+                cart_id = None
+                # Try to get cart_id from one of the order items
+                if order_items.exists():
+                    first_cart_item = order_items.first()
+                    # Try to find the cart with this course and user to get the cart_id
+                    cart = api_models.Cart.objects.filter(course=first_cart_item.course, user=order.student).first()
+                    if cart:
+                        cart_id = cart.cart_id
+                if cart_id:
+                    api_models.Cart.objects.filter(cart_id=cart_id).delete()
+
                 # Create notifications and enrolled courses
                 api_models.Notification.objects.create(
                     user=order.student,
