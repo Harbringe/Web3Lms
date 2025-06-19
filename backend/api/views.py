@@ -1690,7 +1690,25 @@ class CertificateNFTByCertificateAPIView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance:
-            return Response({"error": "Certificate NFT not found for this certificate_id"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                "verified": False,
+                "message": "Certificate NFT not found for this certificate_id."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the underlying certificate is active
+        certificate = instance.certificate
+        if certificate.status != 'active':
+            return Response({
+                "verified": False,
+                "message": f"Certificate is {certificate.status}.",
+                "status": certificate.status
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = serializer.data
+        data.update({
+            "verified": True,
+            "message": "Certificate NFT successfully verified."
+        })
+        return Response(data, status=status.HTTP_200_OK)
 
