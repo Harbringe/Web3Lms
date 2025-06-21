@@ -434,3 +434,42 @@ class CertificateNFTSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj):
         return obj.user.id if obj.user else None
+
+class QuizOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = api_models.QuizOption
+        fields = '__all__'
+
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    options = QuizOptionSerializer(many=True, read_only=True)
+    class Meta:
+        model = api_models.QuizQuestion
+        fields = '__all__'
+        depth = 1
+
+class VariantQuizSerializer(serializers.ModelSerializer):
+    questions = QuizQuestionSerializer(many=True, read_only=True)
+    class Meta:
+        model = api_models.VariantQuiz
+        fields = '__all__'
+        depth = 1
+
+class FinalQuizSerializer(serializers.ModelSerializer):
+    questions = QuizQuestionSerializer(many=True, read_only=True)
+    class Meta:
+        model = api_models.FinalQuiz
+        fields = '__all__'
+        depth = 1
+
+class StudentQuizAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = api_models.StudentQuizAnswer
+        fields = '__all__'
+        depth = 1
+
+class StudentQuizAttemptSerializer(serializers.ModelSerializer):
+    answers = StudentQuizAnswerSerializer(many=True, read_only=True)
+    class Meta:
+        model = api_models.StudentQuizAttempt
+        fields = '__all__'
+        depth = 1

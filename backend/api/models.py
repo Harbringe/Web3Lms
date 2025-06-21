@@ -560,3 +560,95 @@ class CertificateNFT(models.Model):
         # Optional: Check if a CertificateNFT already exists for this certificate
         if CertificateNFT.objects.filter(certificate=self.certificate).exists():
             raise ValidationError("A Certificate NFT already exists for this certificate")
+
+class VariantQuiz(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='variant_quizzes')
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE, related_name='quizzes')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    time_limit = models.IntegerField(blank=True, null=True, help_text="Time limit in seconds")
+    passing_score = models.FloatField(default=0, help_text="Minimum score to pass (as percentage)")
+    shuffle_questions = models.BooleanField(default=False)
+    shuffle_options = models.BooleanField(default=False)
+    max_attempts = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.title} (Variant: {self.variant.title})"
+
+class FinalQuiz(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='final_quiz')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    time_limit = models.IntegerField(blank=True, null=True, help_text="Time limit in seconds")
+    passing_score = models.FloatField(default=0, help_text="Minimum score to pass (as percentage)")
+    shuffle_questions = models.BooleanField(default=False)
+    shuffle_options = models.BooleanField(default=False)
+    max_attempts = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"Final Quiz: {self.title} (Course: {self.course.title})"
+
+class QuizQuestion(models.Model):
+    QUESTION_TYPES = (
+        ('MCQ', 'Multiple Choice Question'),
+        ('TRUE_FALSE', 'True/False'),
+    )
+    
+    variant_quiz = models.ForeignKey(VariantQuiz, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
+    final_quiz = models.ForeignKey(FinalQuiz, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
+    text = models.TextField()
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default='MCQ')
+    points = models.IntegerField(default=1)  # Points for this question
+    order = models.IntegerField(default=0)  # Order of question in quiz
+    created_at = models.DateTimeField(auto_now_add=True)
+    explanation = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.text
+
+class QuizOption(models.Model):
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name='options')
+    text = models.CharField(max_length=255)
+    is_correct = models.BooleanField(default=False)
+    order = models.IntegerField(default=0)  # Order of option in question
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.text
+
+class StudentQuizAttempt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    variant_quiz = models.ForeignKey(VariantQuiz, on_delete=models.CASCADE, null=True, blank=True, related_name='attempts')
+    final_quiz = models.ForeignKey(FinalQuiz, on_delete=models.CASCADE, null=True, blank=True, related_name='attempts')
+    score = models.FloatField(default=0)
+    completed = models.BooleanField(default=False)
+    attempted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (
+            ('user', 'variant_quiz'),
+            ('user', 'final_quiz'),
+        )
+
+    def __str__(self):
+        if self.variant_quiz:
+            return f"{self.user} - {self.variant_quiz}"
+        elif self.final_quiz:
+            return f"{self.user} - {self.final_quiz}"
+        return str(self.user)
+
+class StudentQuizAnswer(models.Model):
+    attempt = models.ForeignKey('StudentQuizAttempt', on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
+    selected_option = models.ForeignKey('QuizOption', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"Attempt {self.attempt.id} - Q: {self.question.id} - Option: {self.selected_option.id if self.selected_option else None}"

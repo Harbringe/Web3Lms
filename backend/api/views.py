@@ -1712,3 +1712,414 @@ class CertificateNFTByCertificateAPIView(generics.RetrieveAPIView):
         })
         return Response(data, status=status.HTTP_200_OK)
 
+class VariantQuizListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = api_serializer.VariantQuizSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        teacher_id = self.kwargs['teacher_id']
+        variant_id = self.kwargs['variant_id']
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return api_models.VariantQuiz.objects.none()
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        return api_models.VariantQuiz.objects.filter(
+            variant_id=variant_id,
+            course__teacher=teacher
+        )
+
+    def perform_create(self, serializer):
+        # Expect variant and course to be provided in the request data
+        serializer.save()
+
+class VariantQuizRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = api_serializer.VariantQuizSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        teacher_id = self.kwargs['teacher_id']
+        quiz_id = self.kwargs['quiz_id']
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return None
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        return api_models.VariantQuiz.objects.get(
+            id=quiz_id,
+            course__teacher=teacher
+        )
+
+class FinalQuizRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = api_serializer.FinalQuizSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        teacher_id = self.kwargs['teacher_id']
+        quiz_id = self.kwargs['quiz_id']
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return None
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        return api_models.FinalQuiz.objects.get(
+            id=quiz_id,
+            course__teacher=teacher
+        )
+
+class FinalQuizListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = api_serializer.FinalQuizSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        teacher_id = self.kwargs['teacher_id']
+        course_id = self.kwargs['course_id']
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return api_models.FinalQuiz.objects.none()
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        return api_models.FinalQuiz.objects.filter(
+            course_id=course_id,
+            course__teacher=teacher
+        )
+
+    def perform_create(self, serializer):
+        # Expect course to be provided in the request data
+        serializer.save()
+
+class QuizQuestionListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = api_serializer.QuizQuestionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        teacher_id = self.kwargs['teacher_id']
+        quiz_id = self.kwargs['quiz_id']
+        quiz_type = self.kwargs['quiz_type']  # 'variant' or 'final'
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return api_models.QuizQuestion.objects.none()
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        
+        if quiz_type == 'variant':
+            return api_models.QuizQuestion.objects.filter(
+                variant_quiz_id=quiz_id,
+                variant_quiz__course__teacher=teacher
+            )
+        elif quiz_type == 'final':
+            return api_models.QuizQuestion.objects.filter(
+                final_quiz_id=quiz_id,
+                final_quiz__course__teacher=teacher
+            )
+        return api_models.QuizQuestion.objects.none()
+
+    def perform_create(self, serializer):
+        # Expect variant_quiz or final_quiz to be provided in the request data
+        serializer.save()
+
+class QuizQuestionRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = api_serializer.QuizQuestionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        teacher_id = self.kwargs['teacher_id']
+        question_id = self.kwargs['question_id']
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return None
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        
+        # Try to get question from variant quiz first, then final quiz
+        try:
+            return api_models.QuizQuestion.objects.get(
+                id=question_id,
+                variant_quiz__course__teacher=teacher
+            )
+        except api_models.QuizQuestion.DoesNotExist:
+            try:
+                return api_models.QuizQuestion.objects.get(
+                    id=question_id,
+                    final_quiz__course__teacher=teacher
+                )
+            except api_models.QuizQuestion.DoesNotExist:
+                return None
+
+class QuizOptionListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = api_serializer.QuizOptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        teacher_id = self.kwargs['teacher_id']
+        question_id = self.kwargs['question_id']
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return api_models.QuizOption.objects.none()
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        
+        # Check if question belongs to teacher's variant quiz or final quiz
+        try:
+            question = api_models.QuizQuestion.objects.get(
+                id=question_id,
+                variant_quiz__course__teacher=teacher
+            )
+        except api_models.QuizQuestion.DoesNotExist:
+            try:
+                question = api_models.QuizQuestion.objects.get(
+                    id=question_id,
+                    final_quiz__course__teacher=teacher
+                )
+            except api_models.QuizQuestion.DoesNotExist:
+                return api_models.QuizOption.objects.none()
+        
+        return api_models.QuizOption.objects.filter(question=question)
+
+    def perform_create(self, serializer):
+        # Expect question to be provided in the request data
+        serializer.save()
+
+class QuizOptionRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = api_serializer.QuizOptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        teacher_id = self.kwargs['teacher_id']
+        option_id = self.kwargs['option_id']
+        
+        # Verify the authenticated user is the teacher
+        if self.request.user.id != int(teacher_id):
+            return None
+        
+        teacher = api_models.Teacher.objects.get(id=teacher_id)
+        
+        # Try to get option from variant quiz question first, then final quiz question
+        try:
+            return api_models.QuizOption.objects.get(
+                id=option_id,
+                question__variant_quiz__course__teacher=teacher
+            )
+        except api_models.QuizOption.DoesNotExist:
+            try:
+                return api_models.QuizOption.objects.get(
+                    id=option_id,
+                    question__final_quiz__course__teacher=teacher
+                )
+            except api_models.QuizOption.DoesNotExist:
+                return None
+
+class StudentQuizAttemptCreateAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.StudentQuizAttemptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
+        quiz_type = request.data.get('quiz_type')  # 'variant' or 'final'
+        quiz_id = request.data.get('quiz_id')
+        answers = request.data.get('answers', [])  # List of {question_id: option_id}
+        
+        # Verify the authenticated user is the student
+        if self.request.user.id != int(user_id):
+            return Response(
+                {"error": "You can only submit attempts for yourself"}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get the quiz and verify student is enrolled
+        try:
+            if quiz_type == 'variant':
+                quiz = api_models.VariantQuiz.objects.get(id=quiz_id)
+                # Check if student is enrolled in the course
+                enrollment = api_models.EnrolledCourse.objects.filter(
+                    user=user, 
+                    course=quiz.course
+                ).first()
+                if not enrollment:
+                    return Response(
+                        {"error": "You must be enrolled in this course to take variant quizzes"}, 
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+                
+                # Check if attempt already exists
+                existing_attempt = api_models.StudentQuizAttempt.objects.filter(
+                    user=user, 
+                    variant_quiz=quiz
+                ).first()
+                
+                if existing_attempt:
+                    return Response(
+                        {"error": "You have already attempted this quiz"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Create attempt
+                attempt = api_models.StudentQuizAttempt.objects.create(
+                    user=user,
+                    variant_quiz=quiz
+                )
+                
+            elif quiz_type == 'final':
+                quiz = api_models.FinalQuiz.objects.get(id=quiz_id)
+                # Check if student is enrolled in the course
+                enrollment = api_models.EnrolledCourse.objects.filter(
+                    user=user, 
+                    course=quiz.course
+                ).first()
+                if not enrollment:
+                    return Response(
+                        {"error": "You must be enrolled in this course to take final quiz"}, 
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+                
+                # Check if attempt already exists
+                existing_attempt = api_models.StudentQuizAttempt.objects.filter(
+                    user=user, 
+                    final_quiz=quiz
+                ).first()
+                
+                if existing_attempt:
+                    return Response(
+                        {"error": "You have already attempted this quiz"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Create attempt
+                attempt = api_models.StudentQuizAttempt.objects.create(
+                    user=user,
+                    final_quiz=quiz
+                )
+            else:
+                return Response(
+                    {"error": "Invalid quiz type. Must be 'variant' or 'final'"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Process answers and calculate score
+            total_points = 0
+            earned_points = 0
+            
+            for answer_data in answers:
+                question_id = answer_data.get('question_id')
+                selected_option_id = answer_data.get('selected_option_id')
+                
+                try:
+                    question = api_models.QuizQuestion.objects.get(id=question_id)
+                    total_points += question.points
+                    
+                    # Create student answer record
+                    selected_option = None
+                    if selected_option_id:
+                        try:
+                            selected_option = api_models.QuizOption.objects.get(
+                                id=selected_option_id, 
+                                question=question
+                            )
+                        except api_models.QuizOption.DoesNotExist:
+                            pass
+                    
+                    api_models.StudentQuizAnswer.objects.create(
+                        attempt=attempt,
+                        question=question,
+                        selected_option=selected_option
+                    )
+                    
+                    # Check if answer is correct
+                    if selected_option and selected_option.is_correct:
+                        earned_points += question.points
+                        
+                except api_models.QuizQuestion.DoesNotExist:
+                    continue
+            
+            # Calculate score percentage
+            score_percentage = (earned_points / total_points * 100) if total_points > 0 else 0
+            attempt.score = score_percentage
+            attempt.completed = True
+            attempt.save()
+            
+            return Response({
+                "message": "Quiz attempt submitted successfully",
+                "attempt_id": attempt.id,
+                "score": score_percentage,
+                "earned_points": earned_points,
+                "total_points": total_points
+            }, status=status.HTTP_201_CREATED)
+            
+        except (api_models.VariantQuiz.DoesNotExist, api_models.FinalQuiz.DoesNotExist):
+            return Response(
+                {"error": "Quiz not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred: {str(e)}"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+class StudentQuizAttemptRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.StudentQuizAttemptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user_id = self.kwargs['user_id']
+        attempt_id = self.kwargs['attempt_id']
+        
+        # Verify the authenticated user is the student
+        if self.request.user.id != int(user_id):
+            return None
+        
+        try:
+            user = User.objects.get(id=user_id)
+            return api_models.StudentQuizAttempt.objects.get(
+                id=attempt_id,
+                user=user
+            )
+        except (User.DoesNotExist, api_models.StudentQuizAttempt.DoesNotExist):
+            return None
+
+class StudentQuizAttemptListAPIView(generics.ListAPIView):
+    serializer_class = api_serializer.StudentQuizAttemptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        quiz_type = self.kwargs.get('quiz_type')  # Optional filter
+        quiz_id = self.kwargs.get('quiz_id')  # Optional filter
+        
+        # Verify the authenticated user is the student
+        if self.request.user.id != int(user_id):
+            return api_models.StudentQuizAttempt.objects.none()
+        
+        try:
+            user = User.objects.get(id=user_id)
+            queryset = api_models.StudentQuizAttempt.objects.filter(user=user)
+            
+            # Apply optional filters
+            if quiz_type == 'variant' and quiz_id:
+                queryset = queryset.filter(variant_quiz_id=quiz_id)
+            elif quiz_type == 'final' and quiz_id:
+                queryset = queryset.filter(final_quiz_id=quiz_id)
+            elif quiz_type == 'variant':
+                queryset = queryset.filter(variant_quiz__isnull=False)
+            elif quiz_type == 'final':
+                queryset = queryset.filter(final_quiz__isnull=False)
+            
+            return queryset
+        except User.DoesNotExist:
+            return api_models.StudentQuizAttempt.objects.none()
+

@@ -84,6 +84,29 @@ urlpatterns = [
     # Certificate NFT Endpoints
     path("certificate-nft/mint/", api_views.MINTCertificateNFTAPIView.as_view()),
     path("certificate-nft/by-certificate/<certificate_id>/", api_views.CertificateNFTByCertificateAPIView.as_view()),
+
+    # Quiz Variant Endpoints
+    path("teacher/quiz/variant/<teacher_id>/<variant_id>/", api_views.VariantQuizListCreateAPIView.as_view()),
+    path("teacher/quiz/variant/detail/<teacher_id>/<quiz_id>/", api_views.VariantQuizRetrieveUpdateDestroyAPIView.as_view()),
+
+    # Quiz Final Endpoints
+    path("teacher/quiz/final/<teacher_id>/<course_id>/", api_views.FinalQuizListCreateAPIView.as_view()),
+    path("teacher/quiz/final/detail/<teacher_id>/<quiz_id>/", api_views.FinalQuizRetrieveUpdateDestroyAPIView.as_view()),
+
+    # Quiz Question Endpoints
+    path("teacher/quiz/question/<teacher_id>/<quiz_type>/<quiz_id>/", api_views.QuizQuestionListCreateAPIView.as_view()),
+    path("teacher/quiz/question/detail/<teacher_id>/<question_id>/", api_views.QuizQuestionRetrieveUpdateDestroyAPIView.as_view()),
+
+    # Quiz Option Endpoints
+    path("teacher/quiz/option/<teacher_id>/<question_id>/", api_views.QuizOptionListCreateAPIView.as_view()),
+    path("teacher/quiz/option/detail/<teacher_id>/<option_id>/", api_views.QuizOptionRetrieveUpdateDestroyAPIView.as_view()),
+
+    # Student Quiz Attempt Endpoints
+    path("student/quiz/attempt/submit/", api_views.StudentQuizAttemptCreateAPIView.as_view()),
+    path("student/quiz/attempt/<user_id>/<attempt_id>/", api_views.StudentQuizAttemptRetrieveAPIView.as_view()),
+    path("student/quiz/attempts/<user_id>/", api_views.StudentQuizAttemptListAPIView.as_view()),
+    path("student/quiz/attempts/<user_id>/<quiz_type>/", api_views.StudentQuizAttemptListAPIView.as_view()),
+    path("student/quiz/attempts/<user_id>/<quiz_type>/<quiz_id>/", api_views.StudentQuizAttemptListAPIView.as_view()),
 ]
 
 

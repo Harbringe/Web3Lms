@@ -3,6 +3,7 @@ from django.contrib import admin
 # from django.contrib import admin
 from api import models 
 
+
 admin.site.register(models.Teacher)
 admin.site.register(models.Category)
 admin.site.register(models.Course)
@@ -27,3 +28,12 @@ admin.site.register(models.Country)
 admin.site.register(models.Certificate)
 admin.site.register(models.NFT)
 admin.site.register(models.CertificateNFT)
+
+
+#Quiz Experimental
+admin.site.register(models.VariantQuiz)
+admin.site.register(models.FinalQuiz)
+admin.site.register(models.QuizQuestion)
+admin.site.register(models.QuizOption)
+admin.site.register(models.StudentQuizAnswer)
+admin.site.register(models.StudentQuizAttempt)
