@@ -28,3 +28,11 @@ admin.site.register(models.Country)
 admin.site.register(models.Certificate)
 admin.site.register(models.NFT)
 admin.site.register(models.CertificateNFT)
+
+
+
+admin.site.register(models.Quiz)
+admin.site.register(models.QuizQuestion)
+admin.site.register(models.QuizQuestionOption)
+admin.site.register(models.QuizAttempt)
+admin.site.register(models.QuizAnswer)

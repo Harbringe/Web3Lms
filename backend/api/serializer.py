@@ -6,6 +6,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from userauths.models import Profile, User
 
+from api.models import Quiz, QuizQuestion, QuizQuestionOption, QuizAttempt, QuizAnswer
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -434,3 +436,85 @@ class CertificateNFTSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj):
         return obj.user.id if obj.user else None
+
+# ===================== QUIZ SERIALIZERS =====================
+
+class QuizQuestionOptionSerializer(serializers.ModelSerializer):
+    quiz_question_option_id = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = QuizQuestionOption
+        fields = ['quiz_question_option_id', 'option_text', 'is_correct']
+
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    quiz_question_id = serializers.CharField(read_only=True)
+    options = QuizQuestionOptionSerializer(many=True)
+
+    class Meta:
+        model = QuizQuestion
+        fields = ['quiz_question_id', 'question_text', 'points', 'order', 'options']
+        read_only_fields = ['quiz_question_id']
+
+    def update(self, instance, validated_data):
+        options_data = validated_data.pop('options', [])
+        # Update the question fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update options
+        existing_ids = [opt['quiz_question_option_id'] for opt in options_data if 'quiz_question_option_id' in opt]
+        # Delete options not in the payload
+        instance.options.exclude(quiz_question_option_id__in=existing_ids).delete()
+        for opt_data in options_data:
+            opt_id = opt_data.get('quiz_question_option_id', None)
+            if opt_id:
+                # Update existing option
+                option = instance.options.get(quiz_question_option_id=opt_id)
+                option.option_text = opt_data.get('option_text', option.option_text)
+                option.is_correct = opt_data.get('is_correct', option.is_correct)
+                option.save()
+            else:
+                # Create new option
+                QuizQuestionOption.objects.create(
+                    question=instance,
+                    option_text=opt_data['option_text'],
+                    is_correct=opt_data.get('is_correct', False)
+                )
+        return instance
+
+class QuizSerializer(serializers.ModelSerializer):
+    quiz_id = serializers.CharField(read_only=True)
+    questions = QuizQuestionSerializer(many=True, read_only=True)
+    teacher = serializers.PrimaryKeyRelatedField(read_only=True)
+    course_id = serializers.SlugRelatedField(source='course', slug_field='course_id', read_only=True)
+
+    class Meta:
+        model = Quiz
+        fields = [
+            'quiz_id', 'course_id', 'teacher', 'title', 'description', 'time_limit',
+            'shuffle_questions', 'min_pass_points', 'max_attempts', 'questions',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['quiz_id', 'created_at', 'updated_at', 'course_id']
+
+class QuizAnswerSerializer(serializers.ModelSerializer):
+    quiz_answer_id = serializers.CharField(read_only=True)
+    question = serializers.PrimaryKeyRelatedField(read_only=True)
+    selected_option = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = QuizAnswer
+        fields = ['quiz_answer_id', 'attempt', 'question', 'selected_option', 'is_correct']
+        read_only_fields = ['quiz_answer_id']
+
+class QuizAttemptSerializer(serializers.ModelSerializer):
+    attempt_id = serializers.CharField(read_only=True)
+    answers = QuizAnswerSerializer(many=True, read_only=True)
+    quiz_id = serializers.SlugRelatedField(source='quiz', slug_field='quiz_id', read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = QuizAttempt
+        fields = ['attempt_id', 'quiz_id', 'user', 'attempt_number', 'score', 'completed_at', 'answers']
+        read_only_fields = ['attempt_id', 'completed_at', 'quiz_id']
