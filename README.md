@@ -33,7 +33,7 @@
 
 - **🎓 Complete LMS Platform** with course management, enrollment, and progress tracking
 - **🔗 Blockchain Integration** for certificate verification and NFT minting
-- **💳 E-commerce Ready** with Razorpay and Stripe payment integration
+- **💳 E-commerce Ready** with Razorpay payment integration
 - **📧 Email System** with Mailgun for notifications and password reset
 - **🔐 JWT Authentication** with secure token management
 - **📊 Admin Dashboard** with Jazzmin for comprehensive management
@@ -140,7 +140,7 @@
 
 ### 💳 E-Commerce & Payments
 - **Shopping Cart**: Add courses to cart with quantity management
-- **Payment Integration**: Support for Razorpay and Stripe payment gateways
+- **Payment Integration**: Support for Razorpay payment gateways
 - **Coupon System**: Discount codes and promotional offers
 - **Order Management**: Complete order tracking and management
 - **Tax Calculation**: Automatic tax calculation based on country
@@ -467,7 +467,7 @@ SOFTWARE.
 
 - Built with [Django](https://www.djangoproject.com/), [Django REST Framework](https://www.django-rest-framework.org/), and [PostgreSQL](https://www.postgresql.org/)
 - Admin interface powered by [Jazzmin](https://github.com/farridav/django-jazzmin)
-- Payment processing by [Razorpay](https://razorpay.com/) and [Stripe](https://stripe.com/)
+- Payment processing by [Razorpay](https://razorpay.com/)
 - Email delivery by [Mailgun](https://www.mailgun.com/)
 - Deployment on [Vercel](https://vercel.com/)
 - Frontend on [VINIT-INAMKE/next14frontend](https://github.com/VINIT-INAMKE/next14frontend/) hosted @ [web3lmsfrontendcardano.vercel.app](https://web3lmsfrontendcardano.vercel.app)
