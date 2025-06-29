@@ -128,12 +128,6 @@
 - <b>Coupon Management:</b> Create and manage discount coupons for courses.
 - <b>Student Management:</b> View enrolled students, answer questions, and manage reviews.
 
-### 💳 E-Commerce & Payments
-
-- <b>Shopping Cart:</b> Add courses to cart, manage items, and proceed to checkout.
-- <b>Checkout & Payment:</b> Secure payment integration (Razorpay, Stripe, etc.) for course purchases.
-- <b>Order Management:</b> Track orders, apply coupons, and view payment status.
-
 ### 🌍 General
 
 - <b>Responsive UI:</b> Modern, mobile-friendly interface using Tailwind CSS and shadcn/ui components.
@@ -459,9 +453,9 @@ SOFTWARE.
 
 > **Aaditya Mehetre** (He/Him)  
 > Blockchain and Full Stack Developer Intern @ [KONMA.ORG](https://www.konma.io/)  
-> AI & ML Practitioner
-> Mostly into Python Development
-> CE Graduate  
+> Passionate about AI, ML, and Python Development
+> Building decentralized learning systems powered by Cardano
+> Computer Engineering Graduate  
 
 [LinkedIn](https://www.linkedin.com/in/aadityamehetre) \| [GitHub](https://github.com/harbringe) \| [Email](mailto:aadityamehetre@icloud.com)
 
