@@ -4,16 +4,19 @@
   <h1>Web3LMS 🚀</h1>
   <p><b>Django-Powered Learning Management System with Blockchain Integration</b></p>
   
-  <p>
-    <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
-    <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
-    <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
-    <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
-    <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
-    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
-    <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
-    <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
-  </p>
+<p>
+  <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
+  <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
+  <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
+  <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
+  <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
+  <img src="https://img.shields.io/badge/Cardano-Web3-blue?logo=cardano" alt="Cardano"/>
+  <img src="https://img.shields.io/badge/Ethereum-SmartContracts-purple?logo=ethereum" alt="Ethereum"/>
+</p>
+
 
     
    
