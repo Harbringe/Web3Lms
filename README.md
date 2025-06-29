@@ -1,19 +1,22 @@
 <div align="center">
-  <img src="public/favicon.svg" alt="Starlord LMS Logo" width="100"/>
+  <img src="public/favicon.svg" alt="Web3Lms Logo" width="100"/>
   
   <h1>Web3LMS 🚀</h1>
   <p><b>Django-Powered Learning Management System with Blockchain Integration</b></p>
   
-  <p>
-    <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
-    <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
-    <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
-    <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
-    <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
-    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
-    <img src="https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel" alt="Vercel"/>
-    <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
-  </p>
+<p>
+  <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
+  <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
+  <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
+  <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
+  <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
+  <img src="https://img.shields.io/badge/Cardano-Web3-blue?logo=cardano" alt="Cardano"/>
+  <img src="https://img.shields.io/badge/Ethereum-SmartContracts-purple?logo=ethereum" alt="Ethereum"/>
+</p>
+
 
     
    
@@ -85,7 +88,7 @@
 
 ## ✨ Overview
 
-**Starlord LMS** is a next-generation Learning Management System (LMS) focused on blockchain and Web3 technology education. Built on the Cardano blockchain, it offers a decentralized, verifiable, and transparent platform for both students and instructors. The platform enables learners to earn immutable, blockchain-stored certificates and credentials, while instructors can create, manage, and monetize high-quality courses.
+**Web3Lms** is a next-generation Learning Management System (LMS) focused on blockchain and Web3 technology education. Built on the Cardano blockchain, it offers a decentralized, verifiable, and transparent platform for both students and instructors. The platform enables learners to earn immutable, blockchain-stored certificates and credentials, while instructors can create, manage, and monetize high-quality courses.
 
 </div>
 
@@ -127,12 +130,6 @@
 - <b>Earnings Dashboard:</b> Track revenue, student enrollments, and course performance.
 - <b>Coupon Management:</b> Create and manage discount coupons for courses.
 - <b>Student Management:</b> View enrolled students, answer questions, and manage reviews.
-
-### 💳 E-Commerce & Payments
-
-- <b>Shopping Cart:</b> Add courses to cart, manage items, and proceed to checkout.
-- <b>Checkout & Payment:</b> Secure payment integration (Razorpay, Stripe, etc.) for course purchases.
-- <b>Order Management:</b> Track orders, apply coupons, and view payment status.
 
 ### 🌍 General
 
@@ -366,11 +363,6 @@ Create a `.env` file with the following variables:
 # Database
 DB_CONN_URL=postgresql://user:password@localhost:5432/web3lms
 
-# Django
-SECRET_KEY=your-secret-key
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
 # Email (Mailgun)
 MAILGUN_API_KEY=your-mailgun-api-key
 MAILGUN_SENDER_DOMAIN=your-domain.com
@@ -382,6 +374,12 @@ RAZORPAY_KEY_SECRET=your-razorpay-secret
 
 # Frontend
 FRONTEND_SITE_URL=http://localhost:3000
+
+# Django Super-user
+CREATE_SUPERUSER=True/False
+DJANGO_SUPERUSER_EMAIL=superuser@email.com
+DJANGO_SUPERUSER_PASSWORD=password
+DJANGO_SUPERUSER_USERNAME=superuser
 ```
 
 ### Database Setup
@@ -422,7 +420,7 @@ This project is licensed under the MIT License:
 ```text
 MIT License
 
-Copyright (c) 2024 Harbringe
+Copyright (c) 2024 Aaditya Mehetre
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -459,9 +457,9 @@ SOFTWARE.
 
 > **Aaditya Mehetre** (He/Him)  
 > Blockchain and Full Stack Developer Intern @ [KONMA.ORG](https://www.konma.io/)  
-> AI & ML Practitioner
-> Mostly into Python Development
-> CE Graduate  
+> Passionate about AI, ML, and Python Development
+> Building decentralized learning systems powered by Cardano
+> Computer Engineering Graduate  
 
 [LinkedIn](https://www.linkedin.com/in/aadityamehetre) \| [GitHub](https://github.com/harbringe) \| [Email](mailto:aadityamehetre@icloud.com)
 
