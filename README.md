@@ -5,21 +5,41 @@
   <p><b>Django-Powered Learning Management System with Blockchain Integration</b></p>
   
 <p>
-  <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
-  <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
-  <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
-  <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
-  <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
-  <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
-  <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
-  <img src="https://img.shields.io/badge/Cardano-Web3-blue?logo=cardano" alt="Cardano"/>
-  <img src="https://img.shields.io/badge/Ethereum-SmartContracts-purple?logo=ethereum" alt="Ethereum"/>
-  <img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="Discussions")/>
+  <a href="https://www.djangoproject.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
+  </a>
+  <a href="https://www.python.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
+  </a>
+  <a href="https://www.django-rest-framework.org/" target="_blank">
+    <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
+  </a>
+  <a href="https://www.postgresql.org/" target="_blank">
+    <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
+  </a>
+  <a href="https://jwt.io/" target="_blank">
+    <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
+  </a>
+  <a href="https://github.com/Harbringe/Web3Lms/blob/main/LICENSE" target="_blank">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
+  </a>
+  <a href="https://render.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
+  </a>
+  <a href="https://www.mailgun.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
+  </a>
+  <a href="https://cardano.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Cardano-Web3-blue?logo=cardano" alt="Cardano"/>
+  </a>
+  <a href="https://ethereum.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Ethereum-SmartContracts-purple?logo=ethereum" alt="Ethereum"/>
+  </a>
+  <a href="https://github.com/Harbringe/Web3Lms/discussions" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="Discussions"/>
+  </a>
 </p>
 
-
-    
    
 </div>
 
