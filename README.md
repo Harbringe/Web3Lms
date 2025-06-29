@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/favicon.svg" alt="Starlord LMS Logo" width="100"/>
+  <img src="public/favicon.svg" alt="Web3Lms Logo" width="100"/>
   
   <h1>Web3LMS 🚀</h1>
   <p><b>Django-Powered Learning Management System with Blockchain Integration</b></p>
@@ -85,7 +85,7 @@
 
 ## ✨ Overview
 
-**Starlord LMS** is a next-generation Learning Management System (LMS) focused on blockchain and Web3 technology education. Built on the Cardano blockchain, it offers a decentralized, verifiable, and transparent platform for both students and instructors. The platform enables learners to earn immutable, blockchain-stored certificates and credentials, while instructors can create, manage, and monetize high-quality courses.
+**Web3Lms** is a next-generation Learning Management System (LMS) focused on blockchain and Web3 technology education. Built on the Cardano blockchain, it offers a decentralized, verifiable, and transparent platform for both students and instructors. The platform enables learners to earn immutable, blockchain-stored certificates and credentials, while instructors can create, manage, and monetize high-quality courses.
 
 </div>
 
