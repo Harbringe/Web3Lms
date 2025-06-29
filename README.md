@@ -477,9 +477,9 @@ SOFTWARE.
 
 > **Aaditya Mehetre** (He/Him)  
 > Blockchain and Full Stack Developer Intern @ [KONMA.ORG](https://www.konma.io/)  
-> Passionate about AI, ML, and Python Development
-> Building decentralized apps powered by Cardano
-> Computer Engineering Graduate
+> Passionate about AI, ML, and Python Development  
+> Building decentralized apps powered by Cardano  
+> Computer Engineering Graduate  
   
 
 [LinkedIn](https://www.linkedin.com/in/aadityamehetre) \| [GitHub](https://github.com/harbringe) \| [Email](mailto:aadityamehetre@icloud.com)
