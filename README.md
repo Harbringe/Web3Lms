@@ -360,11 +360,6 @@ Create a `.env` file with the following variables:
 # Database
 DB_CONN_URL=postgresql://user:password@localhost:5432/web3lms
 
-# Django
-SECRET_KEY=your-secret-key
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
 # Email (Mailgun)
 MAILGUN_API_KEY=your-mailgun-api-key
 MAILGUN_SENDER_DOMAIN=your-domain.com
@@ -376,6 +371,12 @@ RAZORPAY_KEY_SECRET=your-razorpay-secret
 
 # Frontend
 FRONTEND_SITE_URL=http://localhost:3000
+
+# Django Super-user
+CREATE_SUPERUSER=True/False
+DJANGO_SUPERUSER_EMAIL=superuser@email.com
+DJANGO_SUPERUSER_PASSWORD=password
+DJANGO_SUPERUSER_USERNAME=superuser
 ```
 
 ### Database Setup
