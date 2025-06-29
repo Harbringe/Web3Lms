@@ -316,10 +316,30 @@ python manage.py collectstatic
 # Run with Gunicorn
 gunicorn backend.wsgi:application
 ```
+---
 
 ### 🌐 Deployment
 
-The project is configured for deployment on Render with the following setup:
+The project is configured for deployment on **Render** with the following setup:
+
+* **Platform**: [Render](https://render.com/) – zero-config cloud platform for Django backend hosting.
+
+* **Root Directory**: `backend/` is selected as the root directory during deployment.
+
+* **Build Command**:
+
+  ```bash
+  ./build.sh
+  ```
+
+* **Static Files**: Ensure your Django settings use `whitenoise` for serving static files in production.
+  Add this to `middleware` in `settings.py`:
+
+  ```python
+  'whitenoise.middleware.WhiteNoiseMiddleware',
+  ```
+
+* **Database**: PostgreSQL is auto-configured if provisioned through Render. Ensure `dj-database-url` is used in your `settings.py`.
 
 ---
 
