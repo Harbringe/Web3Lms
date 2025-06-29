@@ -1590,3 +1590,499 @@ class NFTAssetIdByEnrollmentAPIView(APIView):
         if not nft.enrollment.user or nft.enrollment.user.id != request.user.id:
             return Response({"error": "You are not authorized to access this NFT asset_id."}, status=status.HTTP_403_FORBIDDEN)
         return Response({"asset_id": nft.asset_id}, status=status.HTTP_200_OK)
+
+class MINTCertificateNFTAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.CertificateNFTSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        certificate_id = request.data.get('certificate_id') or request.data.get('certificateId')
+        policy_id = request.data.get('policy_id') or request.data.get('policyId')
+        asset_id = request.data.get('asset_id') or request.data.get('assetId')
+        asset_name = request.data.get('asset_name') or request.data.get('assetName')
+        tx_hash = request.data.get('tx_hash') or request.data.get('txHash')
+        image = request.data.get('image')
+
+        missing_fields = []
+        if not certificate_id:
+            missing_fields.append('certificate_id')
+        if not policy_id:
+            missing_fields.append('policy_id')
+        if not asset_id:
+            missing_fields.append('asset_id')
+        if not asset_name:
+            missing_fields.append('asset_name')
+        if not tx_hash:
+            missing_fields.append('tx_hash')
+        if not image:
+            missing_fields.append('image')
+
+        if missing_fields:
+            return Response(
+                {
+                    "error": "Missing required fields",
+                    "missing_fields": missing_fields,
+                    "required_fields": {
+                        "certificate_id": "ID of the certificate",
+                        "policy_id": "Cardano policy ID",
+                        "asset_id": "Unique asset ID",
+                        "asset_name": "Name of the NFT",
+                        "tx_hash": "Transaction hash",
+                        "image": "URL of the NFT image"
+                    },
+                    "note": "You can use either snake_case (certificate_id) or camelCase (certificateId) for field names"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get certificate object
+        try:
+            certificate = api_models.Certificate.objects.get(certificate_id=certificate_id)
+        except api_models.Certificate.DoesNotExist:
+            return Response(
+                {"error": "Certificate not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check if CertificateNFT already exists
+        if api_models.CertificateNFT.objects.filter(asset_id=asset_id).exists():
+            return Response(
+                {"error": "Certificate NFT with this asset ID already exists"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        nft_data = {
+            'certificate': certificate.id,
+            'policy_id': policy_id,
+            'asset_id': asset_id,
+            'asset_name': asset_name,
+            'tx_hash': tx_hash,
+            'image': image
+        }
+
+        serializer = self.get_serializer(data=nft_data)
+        serializer.is_valid(raise_exception=True)
+        nft = self.perform_create(serializer)
+
+        # Create notification for user
+        api_models.Notification.objects.create(
+            user=certificate.user,
+            teacher=certificate.course.teacher,
+            type="Certificate NFT Minted",
+            seen=False
+        )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class CertificateNFTByCertificateAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.CertificateNFTSerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        certificate_id = self.kwargs.get('certificate_id')
+        try:
+            certificate = api_models.Certificate.objects.get(certificate_id=certificate_id)
+            return api_models.CertificateNFT.objects.get(certificate=certificate)
+        except (api_models.Certificate.DoesNotExist, api_models.CertificateNFT.DoesNotExist):
+            return None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance:
+            return Response({
+                "verified": False,
+                "message": "Certificate NFT not found for this certificate_id."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the underlying certificate is active
+        certificate = instance.certificate
+        if certificate.status != 'active':
+            return Response({
+                "verified": False,
+                "message": f"Certificate is {certificate.status}.",
+                "status": certificate.status
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data.update({
+            "verified": True,
+            "message": "Certificate NFT successfully verified."
+        })
+        return Response(data, status=status.HTTP_200_OK)
+
+# ===================== QUIZ API VIEWS =====================
+
+class QuizCreateAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.QuizSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        course_id = request.data.get('course_id')
+        title = request.data.get('title')
+        description = request.data.get('description', '')
+        time_limit = request.data.get('time_limit')
+        shuffle_questions = request.data.get('shuffle_questions', True)
+        min_pass_points = request.data.get('min_pass_points', 0)
+        max_attempts = request.data.get('max_attempts', 1)
+
+        course = api_models.Course.objects.filter(course_id=course_id).first()
+        if not course:
+            return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
+        if hasattr(course, 'quiz'):
+            return Response({'error': 'Quiz already exists for this course'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            teacher = api_models.Teacher.objects.get(user=request.user)
+        except api_models.Teacher.DoesNotExist:
+            return Response({'error': 'Teacher profile not found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        quiz = api_models.Quiz.objects.create(
+            course=course,
+            teacher=teacher,
+            title=title,
+            description=description,
+            time_limit=time_limit,
+            shuffle_questions=shuffle_questions,
+            min_pass_points=min_pass_points,
+            max_attempts=max_attempts
+        )
+        serializer = self.get_serializer(quiz)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class QuizDetailAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.QuizSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'quiz_id'
+
+    def get_object(self):
+        quiz_id = self.kwargs['quiz_id']
+        return api_models.Quiz.objects.get(quiz_id=quiz_id)
+
+class QuizQuestionCreateAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.QuizQuestionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        quiz_id = request.data.get('quiz_id')
+        question_text = request.data.get('question_text')
+        points = request.data.get('points', 1)
+        order = request.data.get('order', 0)
+        options = request.data.get('options', [])
+
+        quiz = api_models.Quiz.objects.filter(quiz_id=quiz_id).first()
+        if not quiz:
+            return Response({'error': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        question = api_models.QuizQuestion.objects.create(
+            quiz=quiz,
+            question_text=question_text,
+            points=points,
+            order=order
+        )
+        for opt in options:
+            api_models.QuizQuestionOption.objects.create(
+                question=question,
+                option_text=opt.get('option_text'),
+                is_correct=opt.get('is_correct', False)
+            )
+        serializer = self.get_serializer(question)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class QuizAttemptCreateAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.QuizAttemptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        quiz_id = request.data.get('quiz_id')
+        answers = request.data.get('answers', [])  # [{question_id, selected_option_id}]
+        quiz = api_models.Quiz.objects.filter(quiz_id=quiz_id).first()
+        if not quiz:
+            return Response({'error': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
+        user = request.user
+        attempt_count = api_models.QuizAttempt.objects.filter(quiz=quiz, user=user).count()
+        if attempt_count >= quiz.max_attempts:
+            return Response({'error': 'Maximum attempts reached'}, status=status.HTTP_400_BAD_REQUEST)
+        attempt_number = attempt_count + 1
+        attempt = api_models.QuizAttempt.objects.create(quiz=quiz, user=user, attempt_number=attempt_number)
+        score = 0
+        for ans in answers:
+            question = api_models.QuizQuestion.objects.filter(quiz_question_id=ans.get('question_id')).first()
+            selected_option = api_models.QuizQuestionOption.objects.filter(quiz_question_option_id=ans.get('selected_option_id')).first()
+            is_correct = selected_option.is_correct if selected_option and selected_option.is_correct else False
+            if is_correct:
+                score += question.points
+            api_models.QuizAnswer.objects.create(
+                attempt=attempt,
+                question=question,
+                selected_option=selected_option,
+                is_correct=is_correct
+            )
+        attempt.score = score
+        attempt.save()
+        serializer = self.get_serializer(attempt)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class QuizAttemptListAPIView(generics.ListAPIView):
+    serializer_class = api_serializer.QuizAttemptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        quiz_id = self.kwargs.get('quiz_id')
+        user = self.request.user
+        quiz = api_models.Quiz.objects.filter(quiz_id=quiz_id).first()
+        if not quiz:
+            return api_models.QuizAttempt.objects.none()
+        return api_models.QuizAttempt.objects.filter(quiz=quiz, user=user)
+
+class QuizUpdateAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = api_serializer.QuizSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'quiz_id'
+
+    def get_object(self):
+        quiz_id = self.kwargs['quiz_id']
+        return api_models.Quiz.objects.get(quiz_id=quiz_id)
+
+class QuizDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = api_serializer.QuizSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'quiz_id'
+
+    def get_object(self):
+        quiz_id = self.kwargs['quiz_id']
+        return api_models.Quiz.objects.get(quiz_id=quiz_id)
+
+class QuizListByCourseAPIView(generics.ListAPIView):
+    serializer_class = api_serializer.QuizSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        course = api_models.Course.objects.filter(course_id=course_id).first()
+        if not course:
+            return api_models.Quiz.objects.none()
+        return api_models.Quiz.objects.filter(course=course)
+
+class QuizQuestionUpdateAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = api_serializer.QuizQuestionSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'quiz_question_id'
+
+    def get_object(self):
+        quiz_question_id = self.kwargs['quiz_question_id']
+        return api_models.QuizQuestion.objects.get(quiz_question_id=quiz_question_id)
+
+class QuizQuestionDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = api_serializer.QuizQuestionSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'quiz_question_id'
+
+    def get_object(self):
+        quiz_question_id = self.kwargs['quiz_question_id']
+        return api_models.QuizQuestion.objects.get(quiz_question_id=quiz_question_id)
+
+class QuizQuestionListAPIView(generics.ListAPIView):
+    serializer_class = api_serializer.QuizQuestionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        quiz_id = self.kwargs['quiz_id']
+        quiz = api_models.Quiz.objects.filter(quiz_id=quiz_id).first()
+        if not quiz:
+            return api_models.QuizQuestion.objects.none()
+        return api_models.QuizQuestion.objects.filter(quiz=quiz)
+
+class TakeQuizAPIView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = api_serializer.QuizSerializer
+    lookup_field = 'quiz_id'
+
+    def get_object(self):
+        quiz_id = self.kwargs['quiz_id']
+        return api_models.Quiz.objects.get(quiz_id=quiz_id)
+
+    def retrieve(self, request, *args, **kwargs):
+        quiz = self.get_object()
+        # Hide correct answers in options
+        data = self.get_serializer(quiz).data
+        for q in data['questions']:
+            for opt in q['options']:
+                if 'is_correct' in opt:
+                    opt.pop('is_correct')
+        return Response(data)
+
+class QuizBestAttemptAPIView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = api_serializer.QuizAttemptSerializer
+    lookup_field = 'quiz_id'
+
+    def get_object(self):
+        quiz_id = self.kwargs['quiz_id']
+        quiz = api_models.Quiz.objects.get(quiz_id=quiz_id)
+        user = self.request.user
+        best = api_models.QuizAttempt.objects.filter(quiz=quiz, user=user).order_by('-score').first()
+        if not best:
+            raise api_models.QuizAttempt.DoesNotExist()
+        return best
+
+class QuizAnalyticsAPIView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, quiz_id):
+        quiz = api_models.Quiz.objects.get(quiz_id=quiz_id)
+        attempts = api_models.QuizAttempt.objects.filter(quiz=quiz)
+        total_students = attempts.values('user').distinct().count()
+        avg_score = attempts.aggregate(models.Avg('score'))['score__avg'] or 0
+        pass_count = attempts.filter(score__gte=quiz.min_pass_points).values('user').distinct().count()
+        pass_rate = (pass_count / total_students * 100) if total_students else 0
+        highest = attempts.aggregate(models.Max('score'))['score__max'] or 0
+        lowest = attempts.aggregate(models.Min('score'))['score__min'] or 0
+        attempt_dist = attempts.values('user').annotate(num=models.Count('id')).values_list('num', flat=True)
+
+        # Best attempt per student
+        from django.db.models import Max
+        best_attempts = attempts.values('user').annotate(
+            best_score=Max('score')
+        )
+        # Get the actual best attempt object for each student
+        best_attempt_objs = []
+        for ba in best_attempts:
+            best = attempts.filter(user=ba['user'], score=ba['best_score']).order_by('-score', 'completed_at').first()
+            if best:
+                best_attempt_objs.append(best)
+        # Sort by score descending
+        best_attempt_objs = sorted(best_attempt_objs, key=lambda x: x.score, reverse=True)
+        # Top performers: top 5 best attempts
+        top_performers = best_attempt_objs[:5]
+        # All students' best attempts
+        students_best = [
+            {
+                'user_id': a.user.id,
+                'score': a.score,
+                'attempt_number': a.attempt_number,
+                'completed_at': a.completed_at
+            } for a in best_attempt_objs
+        ]
+        return Response({
+            'total_students': total_students,
+            'avg_score': avg_score,
+            'pass_rate': pass_rate,
+            'highest_score': highest,
+            'lowest_score': lowest,
+            'attempts_distribution': list(attempt_dist),
+            'top_performers': [
+                {
+                    'user_id': a.user.id,
+                    'score': a.score,
+                    'attempt_number': a.attempt_number,
+                    'completed_at': a.completed_at
+                } for a in top_performers
+            ],
+            'students_best_attempts': students_best
+        })
+
+class QuizAttemptResultAPIView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = api_serializer.QuizAttemptSerializer
+    lookup_field = 'attempt_id'
+
+    def get_object(self):
+        attempt_id = self.kwargs['attempt_id']
+        return api_models.QuizAttempt.objects.get(attempt_id=attempt_id, user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        attempt = self.get_object()
+        quiz = attempt.quiz
+        
+        # Calculate pass/fail status
+        passed = attempt.score >= quiz.min_pass_points
+        
+        # Get detailed answer breakdown
+        answers_detail = []
+        for answer in attempt.answers.all():
+            answers_detail.append({
+                'question_id': answer.question.quiz_question_id,
+                'question_text': answer.question.question_text,
+                'selected_option_id': answer.selected_option.quiz_question_option_id if answer.selected_option else None,
+                'selected_option_text': answer.selected_option.option_text if answer.selected_option else None,
+                'is_correct': answer.is_correct,
+                'points_earned': answer.question.points if answer.is_correct else 0,
+                'points_possible': answer.question.points
+            })
+        
+        # Calculate total possible points
+        total_possible = sum(answer['points_possible'] for answer in answers_detail)
+        
+        result_data = {
+            'attempt_id': attempt.attempt_id,
+            'quiz_id': quiz.quiz_id,
+            'quiz_title': quiz.title,
+            'score': attempt.score,
+            'total_possible': total_possible,
+            'percentage': round((attempt.score / total_possible * 100), 2) if total_possible > 0 else 0,
+            'passed': passed,
+            'min_pass_points': quiz.min_pass_points,
+            'attempt_number': attempt.attempt_number,
+            'completed_at': attempt.completed_at,
+            'answers_breakdown': answers_detail,
+            'summary': {
+                'total_questions': len(answers_detail),
+                'correct_answers': sum(1 for answer in answers_detail if answer['is_correct']),
+                'incorrect_answers': sum(1 for answer in answers_detail if not answer['is_correct']),
+                'unanswered': sum(1 for answer in answers_detail if answer['selected_option_id'] is None)
+            }
+        }
+        
+        return Response(result_data)
+
+class QuizStudentStatusAPIView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, quiz_id):
+        try:
+            quiz = api_models.Quiz.objects.get(quiz_id=quiz_id)
+            user = request.user
+            
+            # Get all attempts for this student and quiz
+            attempts = api_models.QuizAttempt.objects.filter(quiz=quiz, user=user)
+            
+            if not attempts.exists():
+                return Response({
+                    'quiz_id': quiz_id,
+                    'quiz_title': quiz.title,
+                    'has_attempted': False,
+                    'total_attempts': 0,
+                    'best_score': 0,
+                    'passed': False,
+                    'attempts_remaining': quiz.max_attempts,
+                    'min_pass_points': quiz.min_pass_points
+                })
+            
+            # Calculate best score
+            best_attempt = attempts.order_by('-score').first()
+            best_score = best_attempt.score
+            
+            # Check if passed (any attempt with score >= min_pass_points)
+            passed = attempts.filter(score__gte=quiz.min_pass_points).exists()
+            
+            # Calculate attempts remaining
+            total_attempts = attempts.count()
+            attempts_remaining = max(0, quiz.max_attempts - total_attempts)
+            
+            return Response({
+                'quiz_id': quiz_id,
+                'quiz_title': quiz.title,
+                'has_attempted': True,
+                'total_attempts': total_attempts,
+                'best_score': best_score,
+                'passed': passed,
+                'attempts_remaining': attempts_remaining,
+                'min_pass_points': quiz.min_pass_points,
+                'max_attempts': quiz.max_attempts
+            })
+            
+        except api_models.Quiz.DoesNotExist:
+            return Response({'error': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

@@ -534,3 +534,94 @@ class NFT(models.Model):
         # Optional: Check if user already owns an NFT for this enrollment
         if NFT.objects.filter(enrollment=self.enrollment).exists():
             raise ValidationError("An NFT already exists for this enrollment")
+
+class CertificateNFT(models.Model):
+    certificate = models.ForeignKey(Certificate, on_delete=models.CASCADE, related_name='certificate_nfts')
+    policy_id = models.CharField(max_length=255)
+    asset_id = models.CharField(max_length=255, unique=True)
+    asset_name = models.CharField(max_length=255,unique=True)
+    tx_hash = models.CharField(max_length=255)
+    image = models.URLField()
+    minted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Certificate NFT"
+        verbose_name_plural = "Certificate NFTs"
+        ordering = ['-minted_at']
+
+    def __str__(self):
+        return f"Certificate NFT for {self.certificate} - {self.asset_id}"
+
+    @property
+    def user(self):
+        return self.certificate.user if self.certificate else None
+
+    def clean(self):
+        # Optional: Check if a CertificateNFT already exists for this certificate
+        if CertificateNFT.objects.filter(certificate=self.certificate).exists():
+            raise ValidationError("A Certificate NFT already exists for this certificate")
+
+# ===================== QUIZ MODELS =====================
+
+class Quiz(models.Model):
+    course = models.OneToOneField(Course, on_delete=models.CASCADE, related_name="quiz")
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    time_limit = models.PositiveIntegerField(help_text="Time limit in minutes")
+    shuffle_questions = models.BooleanField(default=True)
+    min_pass_points = models.PositiveIntegerField(default=0)
+    max_attempts = models.PositiveIntegerField(default=1)
+    quiz_id = ShortUUIDField(unique=True, length=6, max_length=20, alphabet="1234567890")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Quiz for {self.course.title}"
+
+    def total_points(self):
+        return sum(q.points for q in self.questions.all())
+
+class QuizQuestion(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="questions")
+    question_text = models.TextField()
+    points = models.PositiveIntegerField(default=1)
+    order = models.PositiveIntegerField(default=0)
+    quiz_question_id = ShortUUIDField(unique=True, length=6, max_length=20, alphabet="1234567890")
+
+    def __str__(self):
+        return f"{self.question_text} (Quiz: {self.quiz.quiz_id})"
+
+class QuizQuestionOption(models.Model):
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name="options")
+    option_text = models.CharField(max_length=1000)
+    is_correct = models.BooleanField(default=False)
+    quiz_question_option_id = ShortUUIDField(unique=True, length=6, max_length=20, alphabet="1234567890")
+
+    def __str__(self):
+        return f"Option for Q{self.question.quiz_question_id}: {self.option_text}"
+
+class QuizAttempt(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="attempts")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quiz_attempts")
+    attempt_number = models.PositiveIntegerField(default=1)
+    score = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(auto_now_add=True)
+    attempt_id = ShortUUIDField(unique=True, length=6, max_length=20, alphabet="1234567890")
+
+    class Meta:
+        unique_together = ("quiz", "user", "attempt_number")
+        ordering = ["-completed_at"]
+
+    def __str__(self):
+        return f"Attempt {self.attempt_number} by {self.user} on {self.quiz.quiz_id}"
+
+class QuizAnswer(models.Model):
+    attempt = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
+    selected_option = models.ForeignKey(QuizQuestionOption, on_delete=models.SET_NULL, null=True, blank=True)
+    is_correct = models.BooleanField(default=False)
+    quiz_answer_id = ShortUUIDField(unique=True, length=6, max_length=20, alphabet="1234567890")
+
+    def __str__(self):
+        return f"Answer to {self.question.quiz_question_id} in Attempt {self.attempt.attempt_id}"

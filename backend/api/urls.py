@@ -80,6 +80,28 @@ urlpatterns = [
     path("nft/mint/", api_views.NFTMintAPIView.as_view()),
     # path("nft/user/<int:user_id>/", api_views.UserNFTListView.as_view()),
     path("nft/asset-id/<enrollment_id>/", api_views.NFTAssetIdByEnrollmentAPIView.as_view()),
+
+    # Certificate NFT Endpoints
+    path("certificate-nft/mint/", api_views.MINTCertificateNFTAPIView.as_view()),
+    path("certificate-nft/by-certificate/<certificate_id>/", api_views.CertificateNFTByCertificateAPIView.as_view()),
+
+    # Quiz Endpoints
+    path("quiz/create/", api_views.QuizCreateAPIView.as_view()),
+    path("quiz/<str:quiz_id>/", api_views.QuizDetailAPIView.as_view()),
+    path("quiz/question/create/", api_views.QuizQuestionCreateAPIView.as_view()),
+    path("quiz/attempt/create/", api_views.QuizAttemptCreateAPIView.as_view()),
+    path("quiz/attempts/<str:quiz_id>/", api_views.QuizAttemptListAPIView.as_view()),
+    path("quiz/<str:quiz_id>/update/", api_views.QuizUpdateAPIView.as_view()),
+    path("quiz/<str:quiz_id>/delete/", api_views.QuizDeleteAPIView.as_view()),
+    path("quiz/course/<str:course_id>/", api_views.QuizListByCourseAPIView.as_view()),
+    path("quiz/question/<str:quiz_question_id>/update/", api_views.QuizQuestionUpdateAPIView.as_view()),
+    path("quiz/question/<str:quiz_question_id>/delete/", api_views.QuizQuestionDeleteAPIView.as_view()),
+    path("quiz/<str:quiz_id>/questions/", api_views.QuizQuestionListAPIView.as_view()),
+    path("quiz/<str:quiz_id>/take/", api_views.TakeQuizAPIView.as_view()),
+    path("quiz/<str:quiz_id>/best-attempt/", api_views.QuizBestAttemptAPIView.as_view()),
+    path("quiz/<str:quiz_id>/analytics/", api_views.QuizAnalyticsAPIView.as_view()),
+    path("quiz/attempt/<str:attempt_id>/result/", api_views.QuizAttemptResultAPIView.as_view()),
+    path("quiz/<str:quiz_id>/student-status/", api_views.QuizStudentStatusAPIView.as_view()),
 ]
 
 
