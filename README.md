@@ -523,5 +523,4 @@ A: The payment system is modular. You can add new gateways by extending the exis
 **Q: Can I integrate with other blockchain networks?**  
 A: Yes! The blockchain integration is designed to be extensible for multiple networks.
 
----
 </div>
