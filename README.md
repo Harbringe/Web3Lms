@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
     <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
-    <img src="https://img.shields.io/badge/Deploy-Vercel-black?logo=render" alt="Render"/>
+    <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
     <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
   </p>
 
