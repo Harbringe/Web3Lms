@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
   <img src="https://img.shields.io/badge/Cardano-Web3-blue?logo=cardano" alt="Cardano"/>
   <img src="https://img.shields.io/badge/Ethereum-SmartContracts-purple?logo=ethereum" alt="Ethereum"/>
+  <img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="Discussions")/>
 </p>
 
 
