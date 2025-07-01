@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="public/favicon.svg" alt="Web3Lms Logo" width="100"/>
+  <img src="public/favicon.svg" alt="Knowledge Ledger Logo" width="100"/>
   
-  <h1>Web3LMS 🚀</h1>
+  <h1>Knowledge Ledger🚀</h1>
   <p><b>Django-Powered Learning Management System with Blockchain Integration</b></p>
   
 <p>
@@ -86,7 +86,7 @@
   - [🧑‍🎓 Students](#-students)
   - [🧑‍🏫 Instructors](#-instructors)
   - [👨‍💼 Administrators](#-administrators)
-- [💎 What Makes Web3LMS Unique?](#-what-makes-web3lms-unique)
+- [💎 What Makes Knowledge LedgerUnique?](#-what-makes-web3lms-unique)
 - [🛠️ Setup \& Development](#️-setup--development)
   - [🚀 Installation](#-installation)
   - [🏃 Running Locally](#-running-locally)
@@ -215,7 +215,7 @@
 
 ## 🏗️ Architecture
 
-The Web3LMS backend follows a modular Django architecture with the following key components:
+The Knowledge Ledgerbackend follows a modular Django architecture with the following key components:
 
 - **Core App**: Base functionality and shared utilities
 - **UserAuths App**: User authentication and profile management
@@ -278,7 +278,7 @@ graph LR
 
 ---
 
-## 💎 What Makes Web3LMS Unique?
+## 💎 What Makes Knowledge LedgerUnique?
 
 - **Complete LMS Solution**: Full-featured learning management system
 - **Blockchain Integration**: Certificate verification and NFT minting
