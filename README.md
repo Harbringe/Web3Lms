@@ -509,9 +509,9 @@ SOFTWARE.
 
 ## 👥 Contributors
 
-- Vinit Inamke
-- Adnan Shaikh
-- Santanu Chatterjee
+- [Vinit Inamke](https://github.com/VINIT-INAMKE)
+- [Adnan Shaikh](https://github.com/ayoitsady)
+- [Santanu Chatterjee](https://github.com/data-fiasco)
 
 ---
 
