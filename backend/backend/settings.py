@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-l+8qy+mjk4a5hx=*g040%%jkfhep#e^0^-10pa0%qb!ucy_2b6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app', 'web3lms.onrender.com','.now.sh']
+ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app', 'web3lms.onrender.com','.now.sh', "https://web3lms-dev.onrender.com"]
 
 
 # Application definition
@@ -297,8 +297,8 @@ RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET')
 
 
 # Add these settings
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL"), 'https://checkout.razorpay.com', 'https://api.razorpay.com']
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL"), 'https://checkout.razorpay.com', 'https://api.razorpay.com']    
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL"), 'https://checkout.razorpay.com', 'https://api.razorpay.com', "https://web3lms-dev.onrender.com"]
+CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL"), 'https://checkout.razorpay.com', 'https://api.razorpay.com', "https://web3lms-dev.onrender.com"]    
 CORS_ALLOW_CREDENTIALS = True
 # CORS_ORIGIN_ALLOW_ALL = True
 # CORS_REPLACE_HTTPS_REFERER = True
