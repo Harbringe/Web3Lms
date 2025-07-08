@@ -13,7 +13,7 @@ class User(AbstractUser):
     wallet_address = models.CharField(max_length=1000, unique=True, default="None")
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['username', 'wallet_address']
 
     def __str__(self):
         return self.email
