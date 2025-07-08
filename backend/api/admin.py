@@ -36,3 +36,10 @@ admin.site.register(models.QuizQuestion)
 admin.site.register(models.QuizQuestionOption)
 admin.site.register(models.QuizAttempt)
 admin.site.register(models.QuizAnswer)
+
+
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('title', 'teacher', 'category', 'platform_status', 'teacher_course_status')
+    filter_horizontal = ('prerequisites',)
+
+admin.site.register(models.Course, CourseAdmin)

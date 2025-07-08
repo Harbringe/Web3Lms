@@ -22,6 +22,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, APIView
+from rest_framework.exceptions import PermissionDenied
 
 
 import random
@@ -1228,7 +1229,13 @@ class CourseDetailAPIView(generics.RetrieveDestroyAPIView):
 
     def get_object(self):
         slug = self.kwargs['slug']
-        return api_models.Course.objects.get(slug=slug)
+        course = api_models.Course.objects.get(slug=slug)
+        user = self.request.user
+        # Only enforce for authenticated users
+        if user.is_authenticated:
+            if not course.has_completed_prerequisites(user):
+                raise PermissionDenied("You must complete all prerequisite courses and hold the required NFT certificates to access this course.")
+        return course
 
 class CourseVariantDeleteAPIView(generics.DestroyAPIView):
     serializer_class = api_serializer.VariantSerializer

@@ -7,6 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from userauths.models import Profile, User
 
 from api.models import Quiz, QuizQuestion, QuizQuestionOption, QuizAttempt, QuizAnswer
+from .models import Course
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -296,7 +297,13 @@ class EnrolledCourseSerializer(serializers.ModelSerializer):
         else:
             self.Meta.depth = 3
 
+class PrerequisiteCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['id', 'title', 'slug']
+
 class CourseSerializer(serializers.ModelSerializer):
+    prerequisites = PrerequisiteCourseSerializer(many=True, read_only=True)
     students = EnrolledCourseSerializer(many=True, required=False, read_only=True,)
     curriculum = VariantSerializer(many=True, required=False, read_only=True,)
     lectures = VariantItemSerializer(many=True, required=False, read_only=True,)

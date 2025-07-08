@@ -138,6 +138,8 @@ class Course(models.Model):
     slug = models.SlugField(unique=True, null=True, blank=True)
     date = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+    # New field for prerequisites
+    prerequisites = models.ManyToManyField('self', symmetrical=False, blank=True, null=True, related_name='dependent_courses')
     
     class Meta:
         ordering = ['-date']
@@ -188,6 +190,21 @@ class Course(models.Model):
     
     def get_total_lectures(self):
         return self.lectures().count()
+
+    def has_completed_prerequisites(self, user):
+        """
+        Returns True if the user has completed all prerequisite courses and holds the NFT certificate for each.
+        """
+        for prereq in self.prerequisites.all():
+            # Check if user has a certificate for the prerequisite course
+            cert = Certificate.objects.filter(course=prereq, user=user, status='active').first()
+            if not cert:
+                return False
+            # Check if user has a CertificateNFT for this certificate
+            nft = CertificateNFT.objects.filter(certificate=cert).first()
+            if not nft:
+                return False
+        return True
 
 
 class Certificate(models.Model):
