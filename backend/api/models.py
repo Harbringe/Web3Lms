@@ -139,7 +139,7 @@ class Course(models.Model):
     date = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     # New field for prerequisites
-    prerequisites = models.ManyToManyField('self', symmetrical=False, blank=True, null=True, related_name='dependent_courses')
+    prerequisites = models.ManyToManyField('self', symmetrical=False, blank=True, related_name='dependent_courses')
     
     class Meta:
         ordering = ['-date']

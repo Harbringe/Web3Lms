@@ -68,3 +68,5 @@ urllib3==1.26.18
 whitenoise==6.9.0
 yarl==1.18.0
 zipp==3.21.0
+cloudinary
+django-cloudinary-storage
