@@ -1,24 +1,45 @@
 <div align="center">
-  <img src="public/favicon.svg" alt="Web3Lms Logo" width="100"/>
+  <img src="public/favicon.svg" alt="Knowledge Ledger Logo" width="100"/>
   
-  <h1>Web3LMS 🚀</h1>
+  <h1>Knowledge Ledger🚀</h1>
   <p><b>Django-Powered Learning Management System with Blockchain Integration</b></p>
   
 <p>
-  <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
-  <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
-  <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
-  <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
-  <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
-  <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
-  <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
-  <img src="https://img.shields.io/badge/Cardano-Web3-blue?logo=cardano" alt="Cardano"/>
-  <img src="https://img.shields.io/badge/Ethereum-SmartContracts-purple?logo=ethereum" alt="Ethereum"/>
+  <a href="https://www.djangoproject.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Django-4.2-green?logo=django" alt="Django"/>
+  </a>
+  <a href="https://www.python.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Python-3.9+-blue?logo=python" alt="Python"/>
+  </a>
+  <a href="https://www.django-rest-framework.org/" target="_blank">
+    <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django" alt="Django REST Framework"/>
+  </a>
+  <a href="https://www.postgresql.org/" target="_blank">
+    <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?logo=postgresql" alt="PostgreSQL"/>
+  </a>
+  <a href="https://jwt.io/" target="_blank">
+    <img src="https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens" alt="JWT"/>
+  </a>
+  <a href="https://github.com/Harbringe/Web3Lms/blob/main/LICENSE" target="_blank">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
+  </a>
+  <a href="https://render.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Deploy-Render-black?logo=render" alt="Render"/>
+  </a>
+  <a href="https://www.mailgun.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Email-Mailgun-blue?logo=mailgun" alt="Mailgun"/>
+  </a>
+  <a href="https://cardano.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Cardano-Web3-blue?logo=cardano" alt="Cardano"/>
+  </a>
+  <a href="https://ethereum.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Ethereum-SmartContracts-purple?logo=ethereum" alt="Ethereum"/>
+  </a>
+  <a href="https://github.com/Harbringe/Web3Lms/discussions" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="Discussions"/>
+  </a>
 </p>
 
-
-    
    
 </div>
 
@@ -33,7 +54,7 @@
 
 - **🎓 Complete LMS Platform** with course management, enrollment, and progress tracking
 - **🔗 Blockchain Integration** for certificate verification and NFT minting
-- **💳 E-commerce Ready** with Razorpay and Stripe payment integration
+- **💳 E-commerce Ready** with Razorpay payment integration
 - **📧 Email System** with Mailgun for notifications and password reset
 - **🔐 JWT Authentication** with secure token management
 - **📊 Admin Dashboard** with Jazzmin for comprehensive management
@@ -65,7 +86,7 @@
   - [🧑‍🎓 Students](#-students)
   - [🧑‍🏫 Instructors](#-instructors)
   - [👨‍💼 Administrators](#-administrators)
-- [💎 What Makes Web3LMS Unique?](#-what-makes-web3lms-unique)
+- [💎 What Makes Knowledge LedgerUnique?](#-what-makes-web3lms-unique)
 - [🛠️ Setup \& Development](#️-setup--development)
   - [🚀 Installation](#-installation)
   - [🏃 Running Locally](#-running-locally)
@@ -140,7 +161,7 @@
 
 ### 💳 E-Commerce & Payments
 - **Shopping Cart**: Add courses to cart with quantity management
-- **Payment Integration**: Support for Razorpay and Stripe payment gateways
+- **Payment Integration**: Support for Razorpay payment gateways
 - **Coupon System**: Discount codes and promotional offers
 - **Order Management**: Complete order tracking and management
 - **Tax Calculation**: Automatic tax calculation based on country
@@ -194,7 +215,7 @@
 
 ## 🏗️ Architecture
 
-The Web3LMS backend follows a modular Django architecture with the following key components:
+The Knowledge Ledgerbackend follows a modular Django architecture with the following key components:
 
 - **Core App**: Base functionality and shared utilities
 - **UserAuths App**: User authentication and profile management
@@ -257,7 +278,7 @@ graph LR
 
 ---
 
-## 💎 What Makes Web3LMS Unique?
+## 💎 What Makes Knowledge LedgerUnique?
 
 - **Complete LMS Solution**: Full-featured learning management system
 - **Blockchain Integration**: Certificate verification and NFT minting
@@ -316,10 +337,30 @@ python manage.py collectstatic
 # Run with Gunicorn
 gunicorn backend.wsgi:application
 ```
+---
 
 ### 🌐 Deployment
 
-The project is configured for deployment on Render with the following setup:
+The project is configured for deployment on **Render** with the following setup:
+
+* **Platform**: [Render](https://render.com/) – zero-config cloud platform for Django backend hosting.
+
+* **Root Directory**: `backend/` is selected as the root directory during deployment.
+
+* **Build Command**:
+
+  ```bash
+  ./build.sh
+  ```
+
+* **Static Files**: Ensure your Django settings use `whitenoise` for serving static files in production.
+  Add this to `middleware` in `settings.py`:
+
+  ```python
+  'whitenoise.middleware.WhiteNoiseMiddleware',
+  ```
+
+* **Database**: PostgreSQL is auto-configured if provisioned through Render. Ensure `dj-database-url` is used in your `settings.py`.
 
 ---
 
@@ -447,7 +488,7 @@ SOFTWARE.
 
 - Built with [Django](https://www.djangoproject.com/), [Django REST Framework](https://www.django-rest-framework.org/), and [PostgreSQL](https://www.postgresql.org/)
 - Admin interface powered by [Jazzmin](https://github.com/farridav/django-jazzmin)
-- Payment processing by [Razorpay](https://razorpay.com/) and [Stripe](https://stripe.com/)
+- Payment processing by [Razorpay](https://razorpay.com/)
 - Email delivery by [Mailgun](https://www.mailgun.com/)
 - Deployment on [Vercel](https://vercel.com/)
 - Frontend on [VINIT-INAMKE/next14frontend](https://github.com/VINIT-INAMKE/next14frontend/) hosted @ [web3lmsfrontendcardano.vercel.app](https://web3lmsfrontendcardano.vercel.app)
@@ -457,9 +498,10 @@ SOFTWARE.
 
 > **Aaditya Mehetre** (He/Him)  
 > Blockchain and Full Stack Developer Intern @ [KONMA.ORG](https://www.konma.io/)  
-> Passionate about AI, ML, and Python Development
-> Building decentralized learning systems powered by Cardano
+> Passionate about AI, ML, and Python Development  
+> Building decentralized apps powered by Cardano  
 > Computer Engineering Graduate  
+  
 
 [LinkedIn](https://www.linkedin.com/in/aadityamehetre) \| [GitHub](https://github.com/harbringe) \| [Email](mailto:aadityamehetre@icloud.com)
 
@@ -467,9 +509,9 @@ SOFTWARE.
 
 ## 👥 Contributors
 
-- Vinit Inamke
-- Adnan Shaikh
-- Santanu Chatterjee
+- [Vinit Inamke](https://github.com/VINIT-INAMKE)
+- [Adnan Shaikh](https://github.com/ayoitsady)
+- [Santanu Chatterjee](https://github.com/data-fiasco)
 
 ---
 
@@ -502,5 +544,4 @@ A: The payment system is modular. You can add new gateways by extending the exis
 **Q: Can I integrate with other blockchain networks?**  
 A: Yes! The blockchain integration is designed to be extensible for multiple networks.
 
----
 </div>
