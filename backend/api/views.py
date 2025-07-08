@@ -25,6 +25,7 @@ from rest_framework.decorators import api_view, APIView
 from rest_framework.exceptions import PermissionDenied
 
 
+
 import random
 from decimal import Decimal
 # import stripe
@@ -1934,6 +1935,7 @@ class QuizBestAttemptAPIView(generics.RetrieveAPIView):
         return best
 
 class QuizAnalyticsAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.QuizAnalyticsSerializer
     permission_classes = [IsAuthenticated]
     def get(self, request, quiz_id):
         quiz = api_models.Quiz.objects.get(quiz_id=quiz_id)
@@ -2043,6 +2045,7 @@ class QuizAttemptResultAPIView(generics.RetrieveAPIView):
         return Response(result_data)
 
 class QuizStudentStatusAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.QuizStudentStatusSerializer
     permission_classes = [IsAuthenticated]
     
     def get(self, request, quiz_id):

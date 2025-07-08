@@ -525,3 +525,24 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
         model = QuizAttempt
         fields = ['attempt_id', 'quiz_id', 'user', 'attempt_number', 'score', 'completed_at', 'answers']
         read_only_fields = ['attempt_id', 'completed_at', 'quiz_id']
+
+class QuizAnalyticsSerializer(serializers.Serializer):
+    total_students = serializers.IntegerField()
+    avg_score = serializers.FloatField()
+    pass_rate = serializers.FloatField()
+    highest_score = serializers.IntegerField()
+    lowest_score = serializers.IntegerField()
+    attempts_distribution = serializers.ListField(child=serializers.IntegerField())
+    top_performers = serializers.ListField(child=serializers.DictField())
+    students_best_attempts = serializers.ListField(child=serializers.DictField())
+
+class QuizStudentStatusSerializer(serializers.Serializer):
+    quiz_id = serializers.CharField()
+    quiz_title = serializers.CharField()
+    has_attempted = serializers.BooleanField()
+    total_attempts = serializers.IntegerField()
+    best_score = serializers.IntegerField()
+    passed = serializers.BooleanField()
+    attempts_remaining = serializers.IntegerField()
+    min_pass_points = serializers.IntegerField()
+    max_attempts = serializers.IntegerField(required=False)
