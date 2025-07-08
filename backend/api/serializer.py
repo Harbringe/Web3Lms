@@ -310,7 +310,7 @@ class CourseSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True, required=False)
     
     class Meta:
-        fields = ["id", "category", "teacher", "file", "image", "title", "description", "price", "language", "level", "platform_status", "teacher_course_status", "featured", "course_id", "slug", "date", "students", "curriculum", "lectures", "average_rating", "rating_count", "reviews",]
+        fields = ["id", "category", "teacher", "file", "image", "title", "description", "price", "language", "level", "platform_status", "teacher_course_status", "featured", "course_id", "slug", "date", "students", "curriculum", "lectures", "average_rating", "rating_count", "reviews", "prerequisites"]
         model = api_models.Course
 
     def __init__(self, *args, **kwargs):
