@@ -30,7 +30,6 @@ admin.site.register(models.NFT)
 admin.site.register(models.CertificateNFT)
 
 
-
 admin.site.register(models.Quiz)
 admin.site.register(models.QuizQuestion)
 admin.site.register(models.QuizQuestionOption)
