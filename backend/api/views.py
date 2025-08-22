@@ -458,7 +458,7 @@ class RazorpayCheckoutAPIView(generics.CreateAPIView):
                 'key': settings.RAZORPAY_KEY_ID,
                 'amount': float(order.total),
                 'currency': 'INR',
-                'name': 'Web3Lms',
+                'name': 'Knowledge Ledger',   #TODO: CHanged this from Web3Lms to Knowledge Ledger
                 'description': f'Payment for order {order.oid} of {order.total} by {order.full_name} ({order.email})',
                 'order_id': razorpay_order['id'],
                 'callback_url': f'{settings.FRONTEND_SITE_URL}/payment/success',
@@ -1928,6 +1928,8 @@ class QuizBestAttemptAPIView(generics.RetrieveAPIView):
 
 class QuizAnalyticsAPIView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = api_serializer.QuizAttemptSerializer  # Add this line
+    
     def get(self, request, quiz_id):
         quiz = api_models.Quiz.objects.get(quiz_id=quiz_id)
         attempts = api_models.QuizAttempt.objects.filter(quiz=quiz)
@@ -2037,6 +2039,7 @@ class QuizAttemptResultAPIView(generics.RetrieveAPIView):
 
 class QuizStudentStatusAPIView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = api_serializer.QuizAttemptSerializer  # Add this line
     
     def get(self, request, quiz_id):
         try:

@@ -1,5 +1,8 @@
 # custom py
-
+migrations/
+.env.production
+.env.example
+venv/
 
 
 # Byte-compiled / optimized / DLL files

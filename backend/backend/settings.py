@@ -26,12 +26,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l+8qy+mjk4a5hx=*g040%%jkfhep#e^0^-10pa0%qb!ucy_2b6'
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app', 'web3lms.onrender.com','.now.sh']
+ALLOWED_HOSTS = [
+    '127.0.0.1', 
+    'localhost',
+    '.vercel.app', 
+    '.onrender.com',  # Allows all Render subdomains
+    '.now.sh',
+    env.list('ALLOWED_HOSTS', default=[])
+]
 
 
 # Application definition
@@ -56,6 +63,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'anymail',
+    'cloudinary_storage',
         
     'drf_yasg'
 ]
@@ -63,7 +71,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -151,10 +159,54 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Add CDN fallback for drf-yasg static files
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+# Ensure static files are served in production
+if not DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Whitenoise configuration for static files
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_MIMETYPES = {
+    '.js': 'application/javascript',
+    '.css': 'text/css',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
+    '.eot': 'application/vnd.ms-fontobject',
+}
+
+# Cloudinary Configuration for Media Storage
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default='your_cloud_name'),
+    'API_KEY': env('CLOUDINARY_API_KEY', default='your_api_key'),
+    'API_SECRET': env('CLOUDINARY_API_SECRET', default='your_api_secret'),
+}
+
+# Use Cloudinary for media files
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Fallback to local storage if Cloudinary is not configured
+if not env('CLOUDINARY_CLOUD_NAME', default=None):
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+else:
+    # For Cloudinary, we don't need to set MEDIA_URL as Cloudinary handles URLs
+    MEDIA_URL = ''
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Keep for fallback
 
 # Default static files configuration
 DEFAULT_AVATAR = '/static/images/defaults/avatars/default-avatar.jpg'
@@ -195,10 +247,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 JAZZMIN_SETTINGS  = {
     "site_title": "Admin Panel",
-    "site_header": "WEB3 LMS",
-    "site_brand": "WEB3LMS",
+    "site_header": "Knowledge Ledger",
+    "site_brand": "Knowledge Ledger",
     # "site_logo": "path-to-logo",
-    "welcome_sign": "Welcome to the Web3 LMS",
+    "welcome_sign": "Welcome to the Knowledge Ledger",
     "copyright": "",
     "show_ui_builder": True,
 }
@@ -297,9 +349,144 @@ RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET')
 
 
 # Add these settings
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL"), 'https://checkout.razorpay.com', 'https://api.razorpay.com']
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000', 'https://web3lms.onrender.com', 'http://web3lms.onrender.com', 'https://bclms.vercel.app', 'https://web3lmsfrontendcardano.vercel.app', env("FRONTEND_SITE_URL"), 'https://checkout.razorpay.com', 'https://api.razorpay.com']    
+# CSRF and CORS origins from environment variables with fallbacks
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000', 
+    'http://localhost:5173', 
+    'http://127.0.0.1:5173', 
+    'http://localhost:8000', 
+    'http://127.0.0.1:8000',
+    'https://checkout.razorpay.com', 
+    'https://api.razorpay.com'
+])
+
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000', 
+    'http://localhost:5173', 
+    'http://127.0.0.1:5173', 
+    'http://localhost:8000', 
+    'http://127.0.0.1:8000',
+    'https://checkout.razorpay.com', 
+    'https://api.razorpay.com'
+])
+
+# Debug: Print environment variables for troubleshooting
+if DEBUG:
+    print(f"DEBUG: CSRF_TRUSTED_ORIGINS from env: {env.list('CSRF_TRUSTED_ORIGINS', default=[])}")
+    print(f"DEBUG: CORS_ALLOWED_ORIGINS from env: {env.list('CORS_ALLOWED_ORIGINS', default=[])}")
+    print(f"DEBUG: FRONTEND_SITE_URL from env: {env('FRONTEND_SITE_URL', default=None)}")
+
+# Filter out empty values and ensure proper schemes
+CSRF_TRUSTED_ORIGINS = [origin for origin in CSRF_TRUSTED_ORIGINS if origin and origin.strip()]
+CORS_ALLOWED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin and origin.strip()]
+
+# Validate that all origins have proper schemes
+def validate_origin(origin):
+    """Validate that origin has proper scheme and is not empty"""
+    if not origin or not origin.strip():
+        return False
+    # Check if origin starts with http:// or https://
+    return origin.startswith(('http://', 'https://'))
+
+# Filter origins to only include valid ones
+CSRF_TRUSTED_ORIGINS = [origin for origin in CSRF_TRUSTED_ORIGINS if validate_origin(origin)]
+CORS_ALLOWED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if validate_origin(origin)]
+
+# Add FRONTEND_SITE_URL to both lists if it exists and is valid
+frontend_url = env("FRONTEND_SITE_URL", default=None)
+if frontend_url and validate_origin(frontend_url):
+    if frontend_url not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(frontend_url)
+    if frontend_url not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(frontend_url)
+
+# Final validation - ensure we have at least some valid origins
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
+if not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
+
 CORS_ALLOW_CREDENTIALS = True
+
+# Production Logging Configuration
+if not DEBUG:
+    # Check if we're on Render (serverless) - use console-only logging
+    if os.environ.get('RENDER', False):
+        # Render-specific logging (console only)
+        LOGGING = {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'simple': {
+                    'format': '{levelname} {message}',
+                    'style': '{',
+                },
+            },
+            'handlers': {
+                'console': {
+                    'level': 'INFO',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'simple',
+                },
+            },
+            'root': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+            'loggers': {
+                'django': {
+                    'handlers': ['console'],
+                    'level': 'INFO',
+                    'propagate': False,
+                },
+            },
+        }
+    else:
+        # Standard production logging with file handler
+        # Ensure logs directory exists
+        logs_dir = os.path.join(BASE_DIR, 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        LOGGING = {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'verbose': {
+                    'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                    'style': '{',
+                },
+                'simple': {
+                    'format': '{levelname} {message}',
+                    'style': '{',
+                },
+            },
+            'handlers': {
+                'file': {
+                    'level': 'INFO',
+                    'class': 'logging.FileHandler',
+                    'filename': os.path.join(logs_dir, 'django.log'),
+                    'formatter': 'verbose',
+                },
+                'console': {
+                    'level': 'INFO',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'simple',
+                },
+            },
+            'root': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+            },
+            'loggers': {
+                'django': {
+                    'handlers': ['console', 'file'],
+                    'level': 'INFO',
+                    'propagate': False,
+                },
+            },
+        }
 # CORS_ORIGIN_ALLOW_ALL = True
 # CORS_REPLACE_HTTPS_REFERER = True
 # CSRF_COOKIE_DOMAIN = 'onrender.com'
@@ -309,4 +496,22 @@ CORS_ALLOW_CREDENTIALS = True
 #     'onrender.com'
 # )
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Production Security Settings
+if not DEBUG:
+    # HTTPS Settings
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Additional Production Security
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+else:
+    # Development Settings
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

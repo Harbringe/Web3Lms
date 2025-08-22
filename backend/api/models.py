@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from userauths.models import User, Profile
 from shortuuid.django_fields import ShortUUIDField
+from .utils import course_image_upload_path, course_video_upload_path, course_file_upload_path
 # from moviepy.editor import VideoFileClip
 import math
 
@@ -72,7 +73,7 @@ default_category_image = settings.DEFAULT_CATEGORY_IMAGE
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.FileField(upload_to="course-file", blank=True, null=True, default=default_avatar)
+    image = models.FileField(upload_to=course_file_upload_path, blank=True, null=True, default=default_avatar)
     full_name = models.CharField(max_length=100)
     bio = models.CharField(max_length=100, null=True, blank=True)
     facebook = models.URLField(null=True, blank=True)
@@ -94,6 +95,44 @@ class Teacher(models.Model):
     def review(self):
         return Course.objects.filter(teacher=self).count()
     
+    @property
+    def image_url(self):
+        """Get the proper image URL for Cloudinary or local storage"""
+        if self.image:
+            # If using Cloudinary, return the URL directly
+            if hasattr(self.image, 'url'):
+                return self.image.url
+            # Fallback for local storage
+            return f'/media/{self.image}'
+        return None
+    
+    def get_image_url_safe(self):
+        """
+        Safe method to get image URL that handles both old and new paths
+        """
+        if not self.image:
+            return None
+            
+        try:
+            # Try to get the URL normally first
+            if hasattr(self.image, 'url'):
+                return self.image.url
+        except Exception:
+            pass
+        
+        # Fallback: construct URL manually
+        image_path = str(self.image)
+        
+        # Handle Cloudinary URLs
+        if 'cloudinary.com' in image_path:
+            return image_path
+        
+        # Handle local storage URLs
+        if image_path.startswith('/'):
+            return image_path
+        else:
+            return f'/media/{image_path}'
+    
     # def save(self, *args, **kwargs):
     #     if not self.wallet_address:
     #         self.wallet_address = self.user.wallet_address
@@ -101,7 +140,7 @@ class Teacher(models.Model):
     
 class Category(models.Model):
     title = models.CharField(max_length=100)
-    image = models.FileField(upload_to="course-file", default=default_category_image, null=True, blank=True)
+    image = models.FileField(upload_to=course_file_upload_path, default=default_category_image, null=True, blank=True)
     active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, null=True, blank=True)
 
@@ -119,13 +158,51 @@ class Category(models.Model):
         if self.slug == "" or self.slug == None:
             self.slug = slugify(self.title) 
         super(Category, self).save(*args, **kwargs)
+    
+    @property
+    def image_url(self):
+        """Get the proper image URL for Cloudinary or local storage"""
+        if self.image:
+            # If using Cloudinary, return the URL directly
+            if hasattr(self.image, 'url'):
+                return self.image.url
+            # Fallback for local storage
+            return f'/media/{self.image}'
+        return None
+    
+    def get_image_url_safe(self):
+        """
+        Safe method to get image URL that handles both old and new paths
+        """
+        if not self.image:
+            return None
+            
+        try:
+            # Try to get the URL normally first
+            if hasattr(self.image, 'url'):
+                return self.image.url
+        except Exception:
+            pass
+        
+        # Fallback: construct URL manually
+        image_path = str(self.image)
+        
+        # Handle Cloudinary URLs
+        if 'cloudinary.com' in image_path:
+            return image_path
+        
+        # Handle local storage URLs
+        if image_path.startswith('/'):
+            return image_path
+        else:
+            return f'/media/{image_path}'
             
 
 class Course(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
-    file = models.FileField(upload_to="course-file", blank=True, null=True, default=default_course_image)
-    image = models.FileField(upload_to="course-file", blank=True, null=True, default=default_course_image)
+    file = models.FileField(upload_to=course_video_upload_path, blank=True, null=True, default=default_course_image)
+    image = models.FileField(upload_to=course_image_upload_path, blank=True, null=True, default=default_course_image)
     title = models.CharField(max_length=200, null=True)
     description = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, blank=True, null=True)
@@ -188,6 +265,82 @@ class Course(models.Model):
     
     def get_total_lectures(self):
         return self.lectures().count()
+    
+    @property
+    def image_url(self):
+        """Get the proper image URL for Cloudinary or local storage"""
+        if self.image:
+            # If using Cloudinary, return the URL directly
+            if hasattr(self.image, 'url'):
+                return self.image.url
+            # Fallback for local storage
+            return f'/media/{self.image}'
+        return None
+    
+    @property
+    def file_url(self):
+        """Get the proper file URL for Cloudinary or local storage"""
+        if self.file:
+            # If using Cloudinary, return the URL directly
+            if hasattr(self.file, 'url'):
+                return self.file.url
+            # Fallback for local storage
+            return f'/media/{self.file}'
+        return None
+    
+    def get_image_url_safe(self):
+        """
+        Safe method to get image URL that handles both old and new paths
+        """
+        if not self.image:
+            return None
+            
+        try:
+            # Try to get the URL normally first
+            if hasattr(self.image, 'url'):
+                return self.image.url
+        except Exception:
+            pass
+        
+        # Fallback: construct URL manually
+        image_path = str(self.image)
+        
+        # Handle Cloudinary URLs
+        if 'cloudinary.com' in image_path:
+            return image_path
+        
+        # Handle local storage URLs
+        if image_path.startswith('/'):
+            return image_path
+        else:
+            return f'/media/{image_path}'
+    
+    def get_file_url_safe(self):
+        """
+        Safe method to get file URL that handles both old and new paths
+        """
+        if not self.file:
+            return None
+            
+        try:
+            # Try to get the URL normally first
+            if hasattr(self.file, 'url'):
+                return self.file.url
+        except Exception:
+            pass
+        
+        # Fallback: construct URL manually
+        file_path = str(self.file)
+        
+        # Handle Cloudinary URLs
+        if 'cloudinary.com' in file_path:
+            return file_path
+        
+        # Handle local storage URLs
+        if file_path.startswith('/'):
+            return file_path
+        else:
+            return f'/media/{file_path}'
 
 
 class Certificate(models.Model):
@@ -208,11 +361,49 @@ class Certificate(models.Model):
         default='active',
         max_length=20
     )
-    pdf_file = models.FileField(upload_to='certificates/', null=True, blank=True)
+    pdf_file = models.FileField(upload_to=course_file_upload_path, null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)  # For storing additional certificate data
 
     def __str__(self):
         return f"{self.student_name} - {self.course_name}"
+    
+    @property
+    def pdf_url(self):
+        """Get the proper PDF URL for Cloudinary or local storage"""
+        if self.pdf_file:
+            # If using Cloudinary, return the URL directly
+            if hasattr(self.pdf_file, 'url'):
+                return self.pdf_file.url
+            # Fallback for local storage
+            return f'/media/{self.pdf_file}'
+        return None
+    
+    def get_pdf_url_safe(self):
+        """
+        Safe method to get PDF URL that handles both old and new paths
+        """
+        if not self.pdf_file:
+            return None
+            
+        try:
+            # Try to get the URL normally first
+            if hasattr(self.pdf_file, 'url'):
+                return self.pdf_file.url
+        except Exception:
+            pass
+        
+        # Fallback: construct URL manually
+        file_path = str(self.pdf_file)
+        
+        # Handle Cloudinary URLs
+        if 'cloudinary.com' in file_path:
+            return file_path
+        
+        # Handle local storage URLs
+        if file_path.startswith('/'):
+            return file_path
+        else:
+            return f'/media/{file_path}'
     
     def save(self, *args, **kwargs):
         if not self.student_name and self.user:
@@ -266,7 +457,7 @@ class VariantItem(models.Model):
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE, related_name="variant_items")
     title = models.CharField(max_length=1000)
     description = models.TextField(null=True, blank=True)
-    file = models.FileField(upload_to="course-file", blank=True, null=True, default="")
+    file = models.FileField(upload_to=course_video_upload_path, blank=True, null=True, default="")
     duration = models.DurationField(null=True, blank=True)
     content_duration = models.CharField(max_length=1000, null=True, blank=True)
     preview = models.BooleanField(default=False)
@@ -275,6 +466,44 @@ class VariantItem(models.Model):
 
     def __str__(self):
         return f"{self.variant.title} - {self.title}"
+    
+    @property
+    def file_url(self):
+        """Get the proper file URL for Cloudinary or local storage"""
+        if self.file:
+            # If using Cloudinary, return the URL directly
+            if hasattr(self.file, 'url'):
+                return self.file.url
+            # Fallback for local storage
+            return f'/media/{self.file}'
+        return None
+    
+    def get_file_url_safe(self):
+        """
+        Safe method to get file URL that handles both old and new paths
+        """
+        if not self.file:
+            return None
+            
+        try:
+            # Try to get the URL normally first
+            if hasattr(self.file, 'url'):
+                return self.file.url
+        except Exception:
+            pass
+        
+        # Fallback: construct URL manually
+        file_path = str(self.file)
+        
+        # Handle Cloudinary URLs
+        if 'cloudinary.com' in file_path:
+            return file_path
+        
+        # Handle local storage URLs
+        if file_path.startswith('/'):
+            return file_path
+        else:
+            return f'/media/{file_path}'
     
     # def save(self, *args, **kwargs):
     #     super().save(*args, **kwargs)
