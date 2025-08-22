@@ -17,7 +17,10 @@ echo "   RENDER_SERVICE_TYPE: $RENDER_SERVICE_TYPE"
 echo "📦 Installing Production Dependencies..."
 pip install -r requirements.txt
 
-echo "🗄️  Running Database Migrations..."
+echo "🔧 Making migrations..."
+python manage.py makemigrations --no-input
+
+echo "🔧 Running Database Migrations..."
 python manage.py migrate --no-input
 
 echo "📁 Collecting Static Files for Render..."
