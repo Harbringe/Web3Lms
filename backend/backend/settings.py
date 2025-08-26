@@ -197,7 +197,7 @@ CLOUDINARY_STORAGE = {
 }
 
 # Use Cloudinary for media files
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Fallback to local storage if Cloudinary is not configured
 if not env('CLOUDINARY_CLOUD_NAME', default=None):
