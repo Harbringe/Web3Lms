@@ -159,7 +159,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Allow overriding static root to a mounted disk via env
+STATIC_ROOT = env('STATIC_ROOT_PATH', default=os.path.join(BASE_DIR, 'staticfiles'))
 
 # Add CDN fallback for drf-yasg static files
 STATICFILES_FINDERS = [
@@ -189,25 +190,33 @@ WHITENOISE_MIMETYPES = {
     '.eot': 'application/vnd.ms-fontobject',
 }
 
-# Cloudinary Configuration for Media Storage
+# Cloudinary and Media Storage Configuration
+# Toggle via USE_CLOUDINARY; defaults to local disk storage
+USE_CLOUDINARY = env.bool('USE_CLOUDINARY', default=False)
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default='your_cloud_name'),
-    'API_KEY': env('CLOUDINARY_API_KEY', default='your_api_key'),
-    'API_SECRET': env('CLOUDINARY_API_SECRET', default='your_api_secret'),
+    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': env('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
 }
 
-# Use Cloudinary for media files
-# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# Fallback to local storage if Cloudinary is not configured
-if not env('CLOUDINARY_CLOUD_NAME', default=None):
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+if USE_CLOUDINARY and CLOUDINARY_STORAGE.get('CLOUD_NAME') and CLOUDINARY_STORAGE.get('API_KEY') and CLOUDINARY_STORAGE.get('API_SECRET'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_URL = ''  # Cloudinary manages media URLs
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Keep for fallback/compat
 else:
-    # For Cloudinary, we don't need to set MEDIA_URL as Cloudinary handles URLs
-    MEDIA_URL = ''
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Keep for fallback
+    # Local disk storage (server SSD). MEDIA_ROOT can be pointed to a mounted disk path via env.
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = env('MEDIA_ROOT_PATH', default=os.path.join(BASE_DIR, 'media'))
+    # Ensure directories exist on startup
+    try:
+        os.makedirs(MEDIA_ROOT, exist_ok=True)
+    except Exception:
+        pass
+    try:
+        os.makedirs(STATIC_ROOT, exist_ok=True)
+    except Exception:
+        pass
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Default static files configuration
 DEFAULT_AVATAR = '/static/images/defaults/avatars/default-avatar.jpg'

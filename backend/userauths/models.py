@@ -6,20 +6,19 @@ from django.conf import settings
 
 def user_avatar_upload_path(instance, filename):
     """
-    Generate upload path for user avatars: user_folder/user-userid-avatar/filename
+    Compact avatar filename: uid.ext (no folders)
     """
     import os
+    user_id = None
     if hasattr(instance, 'user') and instance.user:
         user_id = instance.user.id
+    elif hasattr(instance, 'id'):
+        user_id = instance.id
     else:
-        user_id = 'unknown'
-    
-    # Get file extension
+        user_id = 'u'
+
     ext = os.path.splitext(filename)[1]
-    # Create descriptive filename
-    new_filename = f"user-{user_id}-avatar{ext}"
-    
-    return f"user_folder/user-{user_id}-avatar/{new_filename}"
+    return f"{user_id}{ext}"
 
 class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)

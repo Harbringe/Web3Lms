@@ -7,7 +7,13 @@ from django.core.exceptions import ValidationError
 
 from userauths.models import User, Profile
 from shortuuid.django_fields import ShortUUIDField
-from .utils import course_image_upload_path, course_video_upload_path, course_file_upload_path
+from .utils import (
+    course_image_upload_path,
+    course_video_upload_path,
+    course_file_upload_path,
+    teacher_image_upload_path,
+    category_image_upload_path,
+)
 # from moviepy.editor import VideoFileClip
 import math
 
@@ -73,7 +79,7 @@ default_category_image = settings.DEFAULT_CATEGORY_IMAGE
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.FileField(upload_to=course_file_upload_path, blank=True, null=True, default=default_avatar)
+    image = models.FileField(upload_to=teacher_image_upload_path, blank=True, null=True, default=default_avatar)
     full_name = models.CharField(max_length=100)
     bio = models.CharField(max_length=100, null=True, blank=True)
     facebook = models.URLField(null=True, blank=True)
@@ -140,7 +146,7 @@ class Teacher(models.Model):
     
 class Category(models.Model):
     title = models.CharField(max_length=100)
-    image = models.FileField(upload_to=course_file_upload_path, default=default_category_image, null=True, blank=True)
+    image = models.FileField(upload_to=category_image_upload_path, default=default_category_image, null=True, blank=True)
     active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, null=True, blank=True)
 

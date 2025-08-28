@@ -23,6 +23,8 @@ export RENDER=True
 echo "📁 Creating necessary directories..."
 # Create logs directory for Django logging
 mkdir -p logs
+mkdir -p media
+mkdir -p staticfiles
 
 echo "🗄️  Running Database Migrations..."
 python manage.py migrate --no-input

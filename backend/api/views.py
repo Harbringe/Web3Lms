@@ -39,6 +39,7 @@ from moviepy import VideoFileClip
 from django.core.files.base import ContentFile
 import math
 from rest_framework.parsers import MultiPartParser, FormParser
+import uuid
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -1283,14 +1284,22 @@ class FileUploadAPIView(APIView):
         if serializer.is_valid():
             file = serializer.validated_data.get("file")
 
-            # Save the file to the media directory
-            file_path = default_storage.save(file.name, ContentFile(file.read()))
+            # Create a compact filename: 8-char id + original extension
+            orig_ext = os.path.splitext(file.name)[1]
+            compact_name = f"{uuid.uuid4().hex[:8]}{orig_ext}"
+
+            # Save the file to the media directory using compact name
+            file_path = default_storage.save(compact_name, ContentFile(file.read()))
             file_url = request.build_absolute_uri(default_storage.url(file_path))
 
             # Check if the file is a video by inspecting its extension
             if file.name.endswith(('.mp4', '.avi', '.mov', '.mkv')):
                 # Calculate the video duration
-                file_full_path = os.path.join(default_storage.location, file_path)
+                try:
+                    file_full_path = default_storage.path(file_path)
+                except Exception:
+                    # Fallback for storages without .path; best-effort join
+                    file_full_path = os.path.join(getattr(default_storage, 'location', ''), file_path)
                 clip = VideoFileClip(file_full_path)
                 duration_seconds = clip.duration
 
