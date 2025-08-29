@@ -205,7 +205,7 @@ if USE_CLOUDINARY and CLOUDINARY_STORAGE.get('CLOUD_NAME') and CLOUDINARY_STORAG
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Keep for fallback/compat
 else:
     # Local disk storage (server SSD). MEDIA_ROOT can be pointed to a mounted disk path via env.
-    MEDIA_URL = '/media/'
+    MEDIA_URL = './media/'
     MEDIA_ROOT = env('MEDIA_ROOT_PATH', default=os.path.join(BASE_DIR, 'media'))
     # Ensure directories exist on startup
     try:
@@ -219,9 +219,9 @@ else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Default static files configuration
-DEFAULT_AVATAR = '/static/images/defaults/avatars/default-avatar.jpg'
-DEFAULT_COURSE_IMAGE = '/static/images/defaults/default-course.jpg'
-DEFAULT_CATEGORY_IMAGE = '/static/images/defaults/default-category.jpg'
+DEFAULT_AVATAR = './static/images/defaults/avatars/default-avatar.jpg'
+DEFAULT_COURSE_IMAGE = './static/images/defaults/default-course.jpg'
+DEFAULT_CATEGORY_IMAGE = './static/images/defaults/default-category.jpg'
 
 AUTH_USER_MODEL = 'userauths.User'
 
