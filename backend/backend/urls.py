@@ -16,9 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.http import HttpResponse
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 from core.views import health_check
 
 from rest_framework import permissions
@@ -55,6 +56,11 @@ urlpatterns = [
 use_cloudinary = getattr(settings, 'USE_CLOUDINARY', False)
 cloud_name = getattr(settings, 'CLOUDINARY_STORAGE', {}).get('CLOUD_NAME')
 if not (use_cloudinary and cloud_name):
+    # In development, this helper adds patterns only when DEBUG=True
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # In production (DEBUG=False), explicitly serve media from MEDIA_ROOT
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

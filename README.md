@@ -416,6 +416,18 @@ RAZORPAY_KEY_SECRET=your-razorpay-secret
 # Frontend
 FRONTEND_SITE_URL=http://localhost:3000
 
+# Storage (set to False to use server disk for media)
+USE_CLOUDINARY=False
+
+# If using local server storage, point these to your mounted SSD paths
+MEDIA_ROOT_PATH=/var/storage/media
+STATIC_ROOT_PATH=/var/storage/staticfiles
+
+# Cloudinary (only used if USE_CLOUDINARY=True)
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
 # Django Super-user
 CREATE_SUPERUSER=True/False
 DJANGO_SUPERUSER_EMAIL=superuser@email.com
