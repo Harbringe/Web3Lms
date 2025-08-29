@@ -205,7 +205,7 @@ if USE_CLOUDINARY and CLOUDINARY_STORAGE.get('CLOUD_NAME') and CLOUDINARY_STORAG
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Keep for fallback/compat
 else:
     # Local disk storage (server SSD). MEDIA_ROOT can be pointed to a mounted disk path via env.
-    MEDIA_URL = './media/'
+    MEDIA_URL = '/media/'
     MEDIA_ROOT = env('MEDIA_ROOT_PATH', default=os.path.join(BASE_DIR, 'media'))
     # Ensure directories exist on startup
     try:
